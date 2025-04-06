@@ -1,6 +1,7 @@
+from os import getenv
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from os import getenv
 
 # just import whatever routers you want to import from ./routers here.
 import routers.users_router as users_router
@@ -8,13 +9,8 @@ import routers.users_router as users_router
 # FastAPI instance here, along with CORS middleware
 DEBUG = getenv("DEBUG_BACKEND", "False").lower() in ("true", "t", "1")
 app = FastAPI(debug=DEBUG, title='Recruitment Management System backend', description='Backend for the RMS-IIITH')
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=["*"],
-    allow_headers=["*"],
-    allow_methods=["GET", "POST"],
-)
+app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=["*"], allow_headers=["*"],
+                   allow_methods=["GET", "POST"], )
 
 
 # base path for checking if the backend is alive.
