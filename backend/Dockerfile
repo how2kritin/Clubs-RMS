@@ -13,7 +13,7 @@ RUN pip install -r requirements.txt
 # build and start
 FROM python:3.12-slim AS build
 EXPOSE 80
-RUN apt-get update && apt-get install libldap-2.5.0 -y
+RUN apt-get update && apt-get install libldap-2.5.0 uvicorn -y
 WORKDIR /app
 ENV VIRTUAL_ENV=/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
