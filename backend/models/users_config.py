@@ -3,13 +3,15 @@ Some users functionality copied over from
 https://github.com/IMS-IIITH/backend/blob/master/routers/users_router.py,
 courtesy of https://github.com/bhavberi
 """
-from cas import CASClient
-from fastapi import HTTPException, Response, status
+from cas import CASClientV3
+from fastapi import HTTPException, Response
 
+from sqlalchemy.orm import Session
+from models.user_model import User
 from utils.auth_utils import create_access_token
 from utils.ldap_utils import authenticate_user
 
-async def user_login_cas(response: Response, ticket: str, cas_client: CASClient):
+async def user_login_cas(response: Response, ticket: str, cas_client: CASClientV3, db: Session):
     if ticket:
         user, attributes, pgtiou = cas_client.verify_ticket(ticket)
         if user:
@@ -18,30 +20,29 @@ async def user_login_cas(response: Response, ticket: str, cas_client: CASClient)
             first_name = attributes['FirstName']
             last_name = attributes['LastName']
             uid = attributes['uid']
-            print(roll, email, first_name, last_name, uid)
-            # batch = get_batch(roll)
-        #     cursor = conn.cursor()
-        #     try:
-        #         cursor.execute('''
-        #                                 SELECT * FROM Login WHERE Uid = ?
-        #                                 ''', (uid,))
-        #         entry = cursor.fetchone()
-        #         conn.commit()
-        #         if entry:
-        #             fernet = Fernet(key)
-        #             token = fernet.encrypt(uid.encode())
-        #             session['token'] = token
-        #             return redirect(f'{SUBPATH}/upcomingTravels')
-        #         else:
-        #             message = 'User not found! Please Sign Up.'
-        #             return render_template('SignUp.html', roll=roll, email=email, first_name=first_name,
-        #                                    last_name=last_name, uid=uid, message=message, subpath=SUBPATH)
-        #     except:
-        #         message = 'Error with database. Please try again'
-        #         return render_template('LogIn.html', message=message, subpath=SUBPATH)
-        # else:
-        #     message = 'Error with CAS. Please try again'
-        #     return render_template('LogIn.html', message=message, subpath=SUBPATH)
+
+            # look up user in database
+            db_user = db.query(User).filter(User.uid == uid).first()
+
+            # create if user doesn't exist
+            if not db_user:
+                db_user = User(
+                    uid=uid,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    roll_number=roll
+                )
+                db.add(db_user)
+                db.commit()
+                db.refresh(db_user)
+
+            # create access token and set cookie
+            access_token = create_access_token(data={
+                "username": f"{first_name} {last_name}",
+                "email": email
+            })
+            response.set_cookie(key="access_token_RMS", value=access_token, httponly=True)
 
     return {"message": "Logged in successfully"}
 

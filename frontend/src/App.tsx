@@ -1,5 +1,4 @@
 // App.js (React Component)
-import React from "react";
 
 const App = () => {
     const handleLoginClick = async () => {
