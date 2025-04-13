@@ -5,23 +5,40 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # just import whatever routers you want to import from ./routers here.
 import routers.users_router as users_router
+import routers.applications_router as applications_router
 from utils.database_utils import init_db
 
 # FastAPI instance here, along with CORS middleware
 DEBUG = getenv("DEBUG_BACKEND", "False").lower() in ("true", "t", "1")
-app = FastAPI(debug=DEBUG, title='Recruitment Management System backend', description='Backend for the RMS-IIITH')
-app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=["*"], allow_headers=["*"],
-                   allow_methods=["GET", "POST"], )
+app = FastAPI(
+    debug=DEBUG,
+    title="Recruitment Management System backend",
+    description="Backend for the RMS-IIITH",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=["*"],
+    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+)
 
 # initialize the postgresql database.
 init_db()
 
 
 # base path for checking if the backend is alive.
-@app.get('/', tags=["General"])
+@app.get("/", tags=["General"])
 async def index():
-    return {"message": "hello, you have reached the backend API service. what would you like to order?"}
+    return {
+        "message": "hello, you have reached the backend API service. what would you like to order?"
+    }
 
 
 # mount the imported routers on a path here.
 app.include_router(users_router.router, prefix="/api/user", tags=["User Management"])
+app.include_router(
+    applications_router.router,
+    prefix="/api/application",
+    tags=["Application Management"],
+)

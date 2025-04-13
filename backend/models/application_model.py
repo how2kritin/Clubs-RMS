@@ -15,10 +15,12 @@ class Application(Base):
     __tablename__ = "applications"
 
     id = Column(Integer, primary_key=True, index=True)
-    # Foreign key linking to the users table (using the primary key id from User)
+
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     user = relationship("User", backref="applications")
-    # store the club identifier
+
+    # TODO: what exactly is the club identifier?
     club_id = Column(String, nullable=False)
+
     form_response = Column(JSON)
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.ongoing)
