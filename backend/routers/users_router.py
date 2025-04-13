@@ -3,26 +3,42 @@ Some users functionality copied over from
 https://github.com/IMS-IIITH/backend/blob/master/routers/users_router.py,
 courtesy of https://github.com/bhavberi
 """
+from os import getenv
 
 from fastapi import APIRouter, HTTPException, Depends, Response, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from models.users_config import user_login, user_logout, user_extend_cookie
+from models.users_config import user_login_cas, user_logout, user_extend_cookie
+from starlette.responses import RedirectResponse
 from utils.auth_utils import check_current_user, get_current_user
+
+from cas import CASClient
+
+CAS_SERVER_URL = getenv('CAS_SERVER_URL')
+CAS_SERVICE_URL = f"{getenv('BASE_URL')}/{getenv('SUBPATH')}/user/login"
+
+cas_client = CASClient(
+    version=3,
+    service_url=CAS_SERVICE_URL,
+    server_url=CAS_SERVER_URL,
+)
 
 router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
-# User Login Endpoint
+# User Login via CAS. Returns the URL for the frontend to redirect to CAS login
 @router.post("/login", status_code=status.HTTP_200_OK)
-async def login(request: Request, response: Response, form_data: OAuth2PasswordRequestForm = Depends(),
-        access_token_RMS: str | None = Depends(check_current_user), ):
-    if access_token_RMS is not None:
-        raise HTTPException(status_code=status.HTTP_304_NOT_MODIFIED, detail="Already Logged In!", )
+async def login_cas_redirect(request: Request, response: Response):
+    cas_login_url = cas_client.get_login_url()
+    return {'loginUrl': cas_login_url}
 
-    return await user_login(response, form_data.username, form_data.password)
+# User Login via CAS. Process the ticket received from CAS
+@router.get("/login", status_code=status.HTTP_200_OK)
+async def login_cas(request: Request, response: Response):
+    ticket = request.query_params.get('ticket')
+    return await user_login_cas(response, ticket, cas_client)
 
 
 # User Logout

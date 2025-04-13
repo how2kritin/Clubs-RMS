@@ -3,27 +3,47 @@ Some users functionality copied over from
 https://github.com/IMS-IIITH/backend/blob/master/routers/users_router.py,
 courtesy of https://github.com/bhavberi
 """
-
+from cas import CASClient
 from fastapi import HTTPException, Response, status
 
 from utils.auth_utils import create_access_token
 from utils.ldap_utils import authenticate_user
 
+async def user_login_cas(response: Response, ticket: str, cas_client: CASClient):
+    if ticket:
+        user, attributes, pgtiou = cas_client.verify_ticket(ticket)
+        if user:
+            roll = attributes['RollNo']
+            email = attributes['E-Mail']
+            first_name = attributes['FirstName']
+            last_name = attributes['LastName']
+            uid = attributes['uid']
+            print(roll, email, first_name, last_name, uid)
+            # batch = get_batch(roll)
+        #     cursor = conn.cursor()
+        #     try:
+        #         cursor.execute('''
+        #                                 SELECT * FROM Login WHERE Uid = ?
+        #                                 ''', (uid,))
+        #         entry = cursor.fetchone()
+        #         conn.commit()
+        #         if entry:
+        #             fernet = Fernet(key)
+        #             token = fernet.encrypt(uid.encode())
+        #             session['token'] = token
+        #             return redirect(f'{SUBPATH}/upcomingTravels')
+        #         else:
+        #             message = 'User not found! Please Sign Up.'
+        #             return render_template('SignUp.html', roll=roll, email=email, first_name=first_name,
+        #                                    last_name=last_name, uid=uid, message=message, subpath=SUBPATH)
+        #     except:
+        #         message = 'Error with database. Please try again'
+        #         return render_template('LogIn.html', message=message, subpath=SUBPATH)
+        # else:
+        #     message = 'Error with CAS. Please try again'
+        #     return render_template('LogIn.html', message=message, subpath=SUBPATH)
 
-async def user_login(response: Response, username, password):
-    auth_success, user_data = authenticate_user(username, password)
-    if not auth_success:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid username or password",
-                            headers={"set-cookie": ""}, )
-
-    email = user_data["mail"][0].decode()
-    username = user_data["uid"][0].decode()
-
-    # Create Access Token and Set Cookie
-    new_access_token = create_access_token(data={"username": username, "email": email})
-    response.set_cookie(key="access_token_RMS", value=new_access_token, httponly=True)
-
-    return {"message": "Logged In Successfully"}
+    return {"message": "Logged in successfully"}
 
 
 async def user_logout(response: Response, current_user):
