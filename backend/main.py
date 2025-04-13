@@ -20,4 +20,4 @@ async def index():
 
 
 # mount the imported routers on a path here.
-app.include_router(users_router.router, prefix="/user", tags=["User Management"])
+app.include_router(users_router.router, prefix="/api/user", tags=["User Management"])
