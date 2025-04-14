@@ -1,11 +1,27 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import DarkModeToggle from './DarkModeToggle.tsx'
+// main.tsx
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import { StrictMode } from 'react';
+import { RouterProvider } from "react-router-dom";
+import { CreateRouter } from "./CreateRouter.tsx";
+import { AuthProvider } from "./AuthProvider.tsx";
+import DarkModeToggle from './layout/DarkModeToggle.tsx';
+import Copyright from './layout/Copyright.tsx';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <DarkModeToggle />
+const App = () => {
+  return (
+    <StrictMode>
+      <div className="min-h-screen flex flex-col transition-colors duration-300 bg-gray-100 dark:bg-gray-900">
+        <DarkModeToggle />
+        <RouterProvider router={CreateRouter()} />
+        <Copyright />
+      </div>  
+    </StrictMode>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <AuthProvider>
     <App />
-  </StrictMode>,
-)
+  </AuthProvider>
+);
