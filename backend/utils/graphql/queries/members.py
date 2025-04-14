@@ -43,61 +43,6 @@ GET_CURRENT_MEMBERS = """
 """
 
 
-GET_PENDING_MEMBERS = """
-  query PendingMembers {
-    pendingMembers {
-      _id
-      cid
-      uid
-      poc
-      roles {
-        rid
-        name
-        startYear
-        endYear
-        approved
-        rejected
-        deleted
-      }
-    }
-  }
-"""
-
-
-GET_MEMBER = """
-  query Member($memberInput: SimpleMemberInput!, $userInput: UserInput!) {
-    member(memberInput: $memberInput) {
-      _id
-      uid
-      cid
-      poc
-      roles {
-        startYear
-        rid
-        name
-        endYear
-        deleted
-        approved
-        approvalTime
-        rejected
-        rejectionTime
-      }
-      creationTime
-      lastEditedTime
-    }
-    userProfile(userInput: $userInput) {
-      firstName
-      lastName
-      gender
-      email
-    }
-    userMeta(userInput: $userInput) {
-      img
-    }
-  }
-"""
-
-
 DOWNLOAD_MEMBERS_DATA = """
   query DownloadMembersData($details: MemberInputDataReportDetails!) {
     downloadMembersData(details: $details) {
