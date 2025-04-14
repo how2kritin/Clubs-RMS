@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Call validation endpoint on mount using credentials (the token is stored as an HTTP-only cookie)
-    fetch("/api/user/validate", {
+    fetch("/api/user/is_authenticated", {
       method: "GET",
       credentials: "include"
     })
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error("Not logged in");
       })
       .then(data => {
-        if (data.valid) {
+        if (data.authenticated) {
           setIsLoggedIn(true);
           localStorage.setItem("isLoggedIn", "true");
         } else {
