@@ -8,7 +8,7 @@ from os import getenv
 from cas import CASClient
 from fastapi import APIRouter, Depends, Response, Request, status
 from fastapi.security import OAuth2PasswordBearer
-from models.users_config import user_login_cas, user_logout, user_extend_cookie
+from models.users.users_config import user_login_cas, user_logout, user_extend_cookie
 from utils.auth_utils import check_current_user, get_current_user
 from utils.database_utils import get_db
 from sqlalchemy.orm import Session
