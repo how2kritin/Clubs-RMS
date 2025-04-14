@@ -1,0 +1,291 @@
+/* src/pages/UserProfile.css */
+
+/* General Page Layout */
+.user-profile-page {
+    padding: 2rem;
+    max-width: 900px; /* Limit overall width */
+    margin: 2rem auto; /* Center the content */
+    background-color: var(--background-color, #fff); /* Use CSS variables for theming */
+    color: var(--text-color, #333);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  /* Dark mode variables (assuming you set these on :root or .dark) */
+  .dark .user-profile-page {
+    --background-color: #1f2937; /* gray-800 */
+    --text-color: #d1d5db; /* gray-300 */
+    --input-bg: #374151; /* gray-700 */
+    --input-border: #4b5563; /* gray-600 */
+    --input-text: #f3f4f6; /* gray-100 */
+    --button-bg: #4f46e5; /* indigo-600 */
+    --button-hover-bg: #4338ca; /* indigo-700 */
+    --tag-bg: #374151; /* gray-700 */
+    --tag-text: #e5e7eb; /* gray-200 */
+    --tag-remove-hover: #ef4444; /* red-500 */
+  }
+  
+  /* Light mode variables (defaults) */
+  .user-profile-page {
+    --input-bg: #fff;
+    --input-border: #d1d5db; /* gray-300 */
+    --input-text: #111827; /* gray-900 */
+    --button-bg: #4f46e5; /* indigo-600 */
+    --button-hover-bg: #4338ca; /* indigo-700 */
+    --tag-bg: #e0e7ff; /* indigo-100 */
+    --tag-text: #3730a3; /* indigo-800 */
+    --tag-remove-hover: #ef4444; /* red-500 */
+  }
+  
+  
+  /* Header */
+  .profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--input-border, #e5e7eb); /* Use variable */
+  }
+  
+  .profile-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--text-color, #111827); /* Use variable */
+  }
+  
+  .edit-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background-color: var(--button-bg);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .edit-button:hover {
+    background-color: var(--button-hover-bg);
+  }
+  
+  /* Profile Content Layout (Picture + Details) */
+  .profile-content {
+    display: grid;
+    grid-template-columns: 1fr; /* Stack on small screens */
+    gap: 2.5rem;
+  }
+  
+  @media (min-width: 768px) { /* Apply side-by-side layout on medium screens and up */
+    .profile-content {
+      grid-template-columns: 200px 1fr; /* Fixed width for picture, rest for details */
+    }
+  }
+  
+  /* Profile Picture Section */
+  .profile-picture-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .profile-picture-section h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+      align-self: flex-start; /* Align heading to the left */
+       width: 100%; /* Ensure it takes full width for alignment */
+  }
+  
+  @media (min-width: 768px) {
+      .profile-picture-section h2 {
+          text-align: center; /* Center heading only on larger screens */
+      }
+  }
+  
+  
+  .profile-picture-main {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--input-border, #ddd);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .profile-picture-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center; /* Center thumbnails */
+    margin-top: 1rem;
+  }
+  
+  .profile-picture-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  
+  .profile-picture-thumb:hover {
+    transform: scale(1.1);
+  }
+  
+  .profile-picture-thumb.selected {
+    border-color: var(--button-bg); /* Highlight selected */
+  }
+  
+  /* Profile Details Section */
+  .profile-details-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Spacing between fields */
+  }
+  
+  .profile-field {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .profile-field label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-color, #4b5563); /* gray-600 */
+  }
+  
+  .profile-field p {
+    margin: 0;
+    padding: 0.6rem 0; /* Add some padding for alignment with inputs */
+    min-height: 38px; /* Match input height */
+    line-height: 1.5;
+    color: var(--text-color);
+  }
+  
+  .profile-field input[type="text"],
+  .profile-field input[type="email"],
+  .profile-field textarea,
+  .profile-field select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .profile-field input:focus,
+  .profile-field textarea:focus,
+  .profile-field select:focus {
+    outline: none;
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3); /* Indigo focus ring */
+  }
+  
+  .profile-field textarea {
+    resize: vertical; /* Allow vertical resize */
+    min-height: 80px;
+  }
+  
+  .hobbies-text {
+      white-space: pre-wrap; /* Preserve whitespace and line breaks */
+      word-break: break-word; /* Break long words */
+  }
+  
+  
+  /* Skills Section */
+  .skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center; /* Align items vertically */
+  }
+  
+  .skill-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--tag-bg);
+    color: var(--tag-text);
+    padding: 0.3rem 0.7rem;
+    border-radius: 12px; /* Pill shape */
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  
+  .remove-skill-btn {
+    display: inline-flex; /* Use flex to center icon */
+    justify-content: center;
+    align-items: center;
+    margin-left: 0.4rem;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--tag-text);
+    cursor: pointer;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  
+  .remove-skill-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--tag-remove-hover);
+  }
+  .dark .remove-skill-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  
+  .add-skill-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem; /* Add some space when wrapping */
+  }
+  
+  .skill-input {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    max-width: 150px; /* Limit width */
+  }
+  
+  .skill-input:focus {
+    outline: none;
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.3);
+  }
+  
+  .add-skill-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    background-color: var(--button-bg);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .add-skill-btn:hover {
+    background-color: var(--button-hover-bg);
+  }
