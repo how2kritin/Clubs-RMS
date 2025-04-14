@@ -69,5 +69,5 @@ if __name__ == "__main__":
     print("\n🔍 Testing get_club() with dummy cid='roboticsclub'")
     pp.pprint(get_club("roboticsclub"))
 
-    print("\n🔍 Testing get_memberships() with dummy uid='user123'")
-    pp.pprint(get_memberships("user123"))
+    print("\n🔍 Testing get_memberships() with dummy uid='samyak.mishra'")
+    pp.pprint(get_memberships("samyak.mishra"))
