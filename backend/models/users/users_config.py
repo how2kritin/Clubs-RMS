@@ -8,10 +8,11 @@ from fastapi import Response
 from sqlalchemy.orm import Session
 
 from models.users.users_model import User
-from utils.auth_utils import create_access_token
+from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
 
 
-async def user_login_cas(response: Response, ticket: str, cas_client: CASClientV3, db: Session):
+async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_address: str, cas_client: CASClientV3,
+                         db: Session):
     if ticket:
         user, attributes, _ = cas_client.verify_ticket(ticket)
         if user:
@@ -31,11 +32,17 @@ async def user_login_cas(response: Response, ticket: str, cas_client: CASClientV
                 db.commit()
                 db.refresh(db_user)
 
-            # create access token and set cookie
-            access_token = create_access_token(data={"uid": f"{uid}"})
-            response.set_cookie(key="access_token_RMS", value=access_token, httponly=True)
+            # create session token and set cookie
+            encrypted_session_id = create_session(user_uid=uid, user_agent=user_agent, ip_address=ip_address, db=db)
+            response.set_cookie(key=SESSION_COOKIE_NAME, value=encrypted_session_id, httponly=True, secure=True,
+                samesite="lax"  # protection against CSRF
+            )
 
     return {"message": "Logged in successfully"}
 
-async def user_info(response: Response):
-    pass
+
+# log user out by invalidating their session
+async def user_logout(response: Response, encrypted_session_id: str, db: Session):
+    invalidate_session(encrypted_session_id, db)
+    response.delete_cookie(key=SESSION_COOKIE_NAME)
+    return {"message": "Logged out successfully"}
