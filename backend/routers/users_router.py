@@ -7,6 +7,7 @@ from os import getenv
 
 from cas import CASClient
 from fastapi import APIRouter, Depends, Response, Request, status
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from models.users_config import user_login_cas, user_logout, user_extend_cookie
 from utils.auth_utils import check_current_user, get_current_user
@@ -33,7 +34,8 @@ async def login_cas_redirect():
 @router.get("/login", status_code=status.HTTP_200_OK)
 async def login_cas(request: Request, response: Response, db: Session = Depends(get_db)):
     ticket = request.query_params.get('ticket')
-    return await user_login_cas(response, ticket, cas_client, db)
+    await user_login_cas(response, ticket, cas_client, db)
+    return RedirectResponse(url=f"{getenv('FRONTEND_URL')}/profile", status_code=302)
 
 
 # User Logout
@@ -46,3 +48,9 @@ async def logout(response: Response, current_user: str | None = Depends(check_cu
 async def extend_cookie(request: Request, response: Response, user_data=Depends(get_current_user), ):
     username, email = user_data["username"], user_data["email"]
     return await user_extend_cookie(response, username, email)
+
+@router.get("/validate", status_code=status.HTTP_200_OK)
+async def validate_user(request: Request, response: Response, current_user=Depends(get_current_user)):
+    if current_user is None:
+        return {"valid": 0}
+    return {"valid": 1}
