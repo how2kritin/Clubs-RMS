@@ -6,18 +6,25 @@ import UserProfile from "./pages/UserProfile.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthContext } from "./AuthProvider.tsx";
+import Navbar from "./layout/Navbar.tsx";
 
 // ProtectedRoute component to guard private routes
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoggedIn } = useContext(AuthContext);
   console.log("isLoggedIn", isLoggedIn);
   if (!isLoggedIn && localStorage.getItem("isLoggedIn") !== "true") {
     return <Navigate to="/" />;
   }
-  return children;
+  return (
+    <>
+      <Navbar />  {/* Render the Navbar here, inside the ProtectedRoute */}
+      {children}
+    </>
+
+  );
 };
 
-const PageLayout = ({ navbarPage, customPage: CustomPage }: { navbarPage: string, customPage: any }) => {
+const PageLayout = ({ customPage: CustomPage }: { customPage: React.ComponentType }) => {
   return (
     <div>
       <CustomPage />
@@ -29,10 +36,10 @@ export const CreateRouter = () => {
   const routes = [
     { path: "/", element: <LandingPage /> },
     {
-      path: "/Dashboard",
+      path: "/dashboard",
       element: (
         <ProtectedRoute>
-          <PageLayout navbarPage="Dashboard" customPage={Dashboard} />
+          <PageLayout customPage={Dashboard} />
         </ProtectedRoute>
       )
     },
@@ -40,7 +47,7 @@ export const CreateRouter = () => {
       path: "/profile",
       element: (
         <ProtectedRoute>
-          <PageLayout navbarPage="User Profile" customPage={UserProfile} />
+          <PageLayout customPage={UserProfile} />
         </ProtectedRoute>
       )
     },
