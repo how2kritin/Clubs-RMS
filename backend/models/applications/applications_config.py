@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from models.applications.applications_model import Application
-from utils.database_utils import get_db
+from utils.database_utils import SessionLocal
 
 
 def get_applicants_by_form(form_id: int):
-    db: Session = next(get_db())
+    db: Session = SessionLocal()
     try:
         applicants = db.query(Application).filter(Application.form_id == form_id).all()
         return applicants
