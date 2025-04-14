@@ -1,40 +1,43 @@
-import { useContext } from "react";
-import { AuthContext } from "../AuthProvider.tsx";
+import { useAuth } from "../AuthProvider.tsx";
 
 const LandingPage = () => {
-  const { isLoggedIn, login, logout } = useContext(AuthContext);
+  const { isLoggedIn, login, logout } = useAuth();
 
   const handleOnClick = async () => {
-    if(!isLoggedIn){
+    if (!isLoggedIn) {
+      try {
+
         login()
-        try {
+      } catch (error) {
+        console.error("Login failed", error);
+      }
+      try {
         const response = await fetch("/api/user/login", {
-            method: "POST",
-            credentials: "include",
+          method: "POST",
+          credentials: "include",
         });
-        // redirect to CAS
         const { loginUrl } = await response.json();
+        console.log("actually logged in from backned");
         window.location.href = loginUrl;
-        } catch (error) {
+      } catch (error) {
         console.error("Login failed:", error);
-        }
+      }
     }
-    else{
-        try {
-            logout()
-            const response = await fetch("/api/user/logout", {
-                method: "POST",
-                credentials: "include",
-            });
-            if (response.ok) {
-                // call logout to update the context state
-                logout();
-            } else {
-                console.error("Logout failed: ", response.statusText);
-            }
-        } catch (error) {
-            console.error("Logout failed:", error);
+    else {
+      try {
+        logout()
+        const response = await fetch("/api/user/logout", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (response.ok) {
+          console.log("actually logged out from backend");
+        } else {
+          console.error("Logout failed: ", response.statusText);
         }
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
     }
   };
 

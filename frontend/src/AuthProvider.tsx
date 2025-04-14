@@ -1,20 +1,20 @@
 // AuthProvider.tsx
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useContext, useState } from 'react';
 
 interface AuthContextType {
-  isLoggedIn: boolean;
+  isLoggedIn: boolean | null;
   login: () => void;
   logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType>({
-  isLoggedIn: false,
-  login: () => {},
-  logout: () => {}
+const AuthContext = createContext<AuthContextType>({
+  isLoggedIn: null,
+  login: () => { },
+  logout: () => { }
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Call validation endpoint on mount using credentials (the token is stored as an HTTP-only cookie)
@@ -30,9 +30,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       })
       .then(data => {
         if (data.authenticated) {
+          console.log("authenticated at the start (session)")
           setIsLoggedIn(true);
           // localStorage.setItem("isLoggedIn", "true");
         } else {
+          console.log("not authenticated at the start (no session)")
+
           setIsLoggedIn(false);
           // localStorage.setItem("isLoggedIn", "false");
         }
@@ -59,4 +62,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

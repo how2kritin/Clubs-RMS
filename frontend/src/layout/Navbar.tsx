@@ -2,14 +2,14 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useLocation, useNavigate} from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-import { AuthContext } from '../AuthProvider'; // Adjust the path if needed
+import { useAuth } from '../AuthProvider'; // Adjust the path if needed
 
 // Define the Navbar component
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activePath, setActivePath] = useState('');
-  const { isLoggedIn, logout } = useContext(AuthContext);
+  const { isLoggedIn, logout } = useAuth();
 
   useEffect(() => {
     setActivePath(location.pathname);
