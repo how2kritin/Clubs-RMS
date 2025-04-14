@@ -31,27 +31,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .then(data => {
         if (data.authenticated) {
           setIsLoggedIn(true);
-          localStorage.setItem("isLoggedIn", "true");
+          // localStorage.setItem("isLoggedIn", "true");
         } else {
           setIsLoggedIn(false);
-          localStorage.setItem("isLoggedIn", "false");
+          // localStorage.setItem("isLoggedIn", "false");
         }
       })
       .catch(error => {
         console.error("Token validation error:", error);
         setIsLoggedIn(false);
-        localStorage.setItem("isLoggedIn", "false");
+        // localStorage.setItem("isLoggedIn", "false");
       });
   }, []);
 
   const login = () => {
     setIsLoggedIn(true);
-    localStorage.setItem("isLoggedIn", "true");
+    // localStorage.setItem("isLoggedIn", "true");
   };
 
   const logout = () => {
     setIsLoggedIn(false);
-    localStorage.setItem("isLoggedIn", "false");
+    // localStorage.setItem("isLoggedIn", "false");
   };
 
   return (

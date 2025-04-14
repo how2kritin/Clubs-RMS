@@ -22,7 +22,7 @@ const Navbar = () => {
   ];
 
     // Only render the Navbar if the user is logged in
-    if (!isLoggedIn && localStorage.getItem("isLoggedIn") !== "true") {
+    if (!isLoggedIn) {
         return null;
     }
     const handleLogout = async () => {

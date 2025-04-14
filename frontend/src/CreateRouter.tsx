@@ -11,10 +11,10 @@ import Navbar from "./layout/Navbar.tsx";
 // ProtectedRoute component to guard private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoggedIn } = useContext(AuthContext);
-  console.log("isLoggedIn", isLoggedIn);
-  if (!isLoggedIn && localStorage.getItem("isLoggedIn") !== "true") {
-    return <Navigate to="/" />;
-  }
+  // console.log("isLoggedIn", isLoggedIn);
+  // if (!isLoggedIn) {
+  //   return <Navigate to="/" />;
+  // }
   return (
     <>
       <Navbar />  {/* Render the Navbar here, inside the ProtectedRoute */}
