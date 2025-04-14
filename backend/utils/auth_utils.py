@@ -7,11 +7,13 @@ from datetime import datetime, timedelta
 from os import getenv
 from typing import Optional
 
-from fastapi import HTTPException, Cookie
+from fastapi import HTTPException, Cookie, Depends
 from jose import JWTError, jwt
 from pytz import timezone
 
-from utils.ldap_utils import get_user_by_email
+from sqlalchemy.orm import Session
+from utils.database_utils import get_db
+from models.users.users_model import User
 
 # JWT Authentication
 SECRET_KEY = (getenv("JWT_SECRET_KEY", "this_is_my_very_secretive_secret") + "__RMS__")
@@ -31,41 +33,55 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-# Dependency for User Authentication
-async def get_current_user(access_token_RMS: str = Cookie(None)):
+# Get current user info based on JWT token stored in cookie
+async def get_current_user(access_token_RMS: str = Cookie(None), db: Session = Depends(get_db)):
     if access_token_RMS is None:
         raise HTTPException(status_code=401, detail="Not Authenticated")
+
     try:
         payload = jwt.decode(access_token_RMS, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("username")
-        email = payload.get("email")
-        if username is None:
+        uid = payload.get("uid")
+
+        if uid is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        user = get_user_by_email(email)
+
+        # query the user from the local database
+        user = db.query(User).filter(User.uid == uid).first()
+
         if user is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+            raise HTTPException(status_code=401, detail="User not found in database")
 
-        email = user["mail"][0].decode()
-        username = user["uid"][0].decode()
-        name = user["cn"][0].decode()
+        return {
+            "uid": user.uid,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "roll_number": user.roll_number
+        }
 
-        return {"username": username, "email": email, "name": name}
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
 
-# Function to check the current user is logged in or not
-async def check_current_user(access_token_RMS: str = Cookie(None)):
+# Function to check if the current user is logged in, based on the JWT token stored in the cookie
+async def check_current_user(access_token_RMS: str = Cookie(None), db: Session = Depends(get_db)):
     if access_token_RMS is None:
         return None
+
     try:
         payload = jwt.decode(access_token_RMS, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("email")
-        if email is None:
+        uid = payload.get("uid")
+
+        if uid is None:
             return None
-        user = get_user_by_email(email)
+
+        # query the user from the local database
+        user = db.query(User).filter(User.uid == uid).first()
+
         if user is None:
             return None
+
         return access_token_RMS
+
     except JWTError:
         return None

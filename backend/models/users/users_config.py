@@ -4,7 +4,7 @@ https://github.com/IMS-IIITH/backend/blob/master/routers/users_router.py,
 courtesy of https://github.com/bhavberi
 """
 from cas import CASClientV3
-from fastapi import HTTPException, Response
+from fastapi import Response
 from sqlalchemy.orm import Session
 
 from models.users.users_model import User
@@ -32,21 +32,10 @@ async def user_login_cas(response: Response, ticket: str, cas_client: CASClientV
                 db.refresh(db_user)
 
             # create access token and set cookie
-            access_token = create_access_token(data={"username": f"{first_name} {last_name}", "email": email})
+            access_token = create_access_token(data={"uid": f"{uid}"})
             response.set_cookie(key="access_token_RMS", value=access_token, httponly=True)
 
     return {"message": "Logged in successfully"}
 
-
-async def user_logout(response: Response, current_user):
-    if current_user is None:
-        raise HTTPException(status_code=401, detail="Not Logged In!")
-    response.delete_cookie("access_token_RMS")
-    return {"message": "Logged Out Successfully"}
-
-
-async def user_extend_cookie(response, username, email):
-    # Extend the access token/expiry time
-    new_access_token = create_access_token(data={"username": username, "email": email})
-    response.set_cookie(key="access_token_RMS", value=new_access_token, httponly=True)
-    return {"message": "Cookie Extended Successfully"}
+async def user_info(response: Response):
+    pass
