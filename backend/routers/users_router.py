@@ -6,10 +6,12 @@ courtesy of https://github.com/bhavberi
 from os import getenv
 
 from cas import CASClient
-from fastapi import APIRouter, Depends, Response, Request, status
-from models.users.users_config import user_login_cas, user_info
-from utils.database_utils import get_db
+from fastapi import APIRouter, Depends, Response, Request, status, Cookie
 from sqlalchemy.orm import Session
+
+from models.users.users_config import user_login_cas, user_logout
+from utils.database_utils import get_db
+from utils.session_utils import SESSION_COOKIE_NAME, check_current_user, get_current_user
 
 CAS_SERVER_URL = getenv('CAS_SERVER_URL')
 CAS_SERVICE_URL = f"{getenv('BASE_URL')}/{getenv('SUBPATH')}/user/login"
@@ -30,10 +32,25 @@ async def login_cas_redirect():
 @router.get("/login", status_code=status.HTTP_200_OK)
 async def login_cas(request: Request, response: Response, db: Session = Depends(get_db)):
     ticket = request.query_params.get('ticket')
-    return await user_login_cas(response, ticket, cas_client, db)
+    user_agent = request.headers.get("user-agent", "")
+    ip_address = request.client.host if request.client else None
+    return await user_login_cas(response, ticket, user_agent, ip_address, cas_client, db)
 
 
 # Fetch the info of the currently logged-in user
 @router.get("/user_info", status_code=status.HTTP_200_OK)
-async def get_user_info(request: Request, response: Response):
-    return await user_info(response)
+async def get_user_info(current_user: dict = Depends(get_current_user)):
+    return current_user
+
+
+# Check if a user is logged in
+@router.get("/is_authenticated", status_code=status.HTTP_200_OK)
+async def check_login(session: str = Depends(check_current_user)):
+    return {"authenticated": session is not None}
+
+
+# User Logout
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout(response: Response, db: Session = Depends(get_db),
+        session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME)):
+    return await user_logout(response, session_id, db)
