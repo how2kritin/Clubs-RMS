@@ -11,7 +11,7 @@ import { AuthContext } from "./AuthProvider.tsx";
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoggedIn } = useContext(AuthContext);
   console.log("isLoggedIn", isLoggedIn);
-  if (!isLoggedIn) {
+  if (!isLoggedIn && localStorage.getItem("isLoggedIn") !== "true") {
     return <Navigate to="/" />;
   }
   return children;

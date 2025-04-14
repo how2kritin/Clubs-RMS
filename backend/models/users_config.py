@@ -12,6 +12,7 @@ from utils.auth_utils import create_access_token
 from utils.ldap_utils import authenticate_user
 
 async def user_login_cas(response: Response, ticket: str, cas_client: CASClientV3, db: Session):
+    access_token = None
     if ticket:
         user, attributes, pgtiou = cas_client.verify_ticket(ticket)
         if user:
@@ -42,9 +43,9 @@ async def user_login_cas(response: Response, ticket: str, cas_client: CASClientV
                 "username": f"{first_name} {last_name}",
                 "email": email
             })
-            response.set_cookie(key="access_token_RMS", value=access_token, httponly=True)
+            # response.set_cookie(key="access_token_RMS", value=access_token, httponly=True)
 
-    return {"message": "Logged in successfully"}
+    return access_token
 
 
 async def user_logout(response: Response, current_user):
@@ -57,5 +58,5 @@ async def user_logout(response: Response, current_user):
 async def user_extend_cookie(response, username, email):
     # Extend the access token/expiry time
     new_access_token = create_access_token(data={"username": username, "email": email})
-    response.set_cookie(key="access_token_RMS", value=new_access_token, httponly=True)
+    response.set_cookie(key="access_token_RMS", value=new_access_token)
     return {"message": "Cookie Extended Successfully"}

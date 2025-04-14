@@ -34,8 +34,10 @@ async def login_cas_redirect():
 @router.get("/login", status_code=status.HTTP_200_OK)
 async def login_cas(request: Request, response: Response, db: Session = Depends(get_db)):
     ticket = request.query_params.get('ticket')
-    await user_login_cas(response, ticket, cas_client, db)
-    return RedirectResponse(url=f"{getenv('FRONTEND_URL')}/profile", status_code=302)
+    access_token = await user_login_cas(response, ticket, cas_client, db)
+    response = RedirectResponse(url=f"{getenv('FRONTEND_URL')}/profile", status_code=302)
+    response.set_cookie(key="access_token_RMS", value=access_token, httponly=True)
+    return response
 
 
 # User Logout
@@ -50,7 +52,8 @@ async def extend_cookie(request: Request, response: Response, user_data=Depends(
     return await user_extend_cookie(response, username, email)
 
 @router.get("/validate", status_code=status.HTTP_200_OK)
-async def validate_user(request: Request, response: Response, current_user=Depends(get_current_user)):
+async def validate_user(request: Request, response: Response, current_user=Depends(check_current_user)):
     if current_user is None:
+        response.status_code = status.HTTP_401_UNAUTHORIZED
         return {"valid": 0}
     return {"valid": 1}
