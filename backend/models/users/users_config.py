@@ -3,9 +3,12 @@ Some users functionality copied over from
 https://github.com/IMS-IIITH/backend/blob/master/routers/users_router.py,
 courtesy of https://github.com/bhavberi
 """
+from os import getenv
+
 from cas import CASClientV3
 from fastapi import Response
 from sqlalchemy.orm import Session
+from starlette.responses import RedirectResponse
 
 from models.users.users_model import User
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
@@ -34,11 +37,11 @@ async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_ad
 
             # create session token and set cookie
             encrypted_session_id = create_session(user_uid=uid, user_agent=user_agent, ip_address=ip_address, db=db)
-            # response.set_cookie(key=SESSION_COOKIE_NAME, value=encrypted_session_id, httponly=True, secure=True,
-            #     samesite="lax"  # protection against CSRF
-            # )
-            
-    return encrypted_session_id
+            response = RedirectResponse(url=f"{getenv('FRONTEND_URL')}/profile")
+            response.set_cookie(key=SESSION_COOKIE_NAME, value=encrypted_session_id, httponly=True, secure=True,
+                                samesite="lax"  # protection against CSRF
+                                )
+    return response
 
 
 # log user out by invalidating their session

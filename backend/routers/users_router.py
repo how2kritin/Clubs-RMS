@@ -36,12 +36,7 @@ async def login_cas(request: Request, response: Response, db: Session = Depends(
     ticket = request.query_params.get('ticket')
     user_agent = request.headers.get("user-agent", "")
     ip_address = request.client.host if request.client else None
-    encrypted_session_id = await user_login_cas(response, ticket, user_agent, ip_address, cas_client, db)
-    response = RedirectResponse(url=f"{getenv('FRONTEND_URL')}/profile")
-    response.set_cookie(key=SESSION_COOKIE_NAME, value=encrypted_session_id, httponly=True, secure=True,
-        samesite="lax"  # protection against CSRF
-    )
-    return response
+    return await user_login_cas(response, ticket, user_agent, ip_address, cas_client, db)
 
 
 # Fetch the info of the currently logged-in user
