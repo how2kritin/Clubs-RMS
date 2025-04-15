@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models.applications.applications_model import Application
@@ -5,6 +6,7 @@ from models.club_recruitment.club_recruitment_model import (
     Form,
     Question,
 )
+from models.users.users_model import User
 from schemas.form.form import FormCreate, FormUpdate
 
 
@@ -65,3 +67,15 @@ def delete_form(db: Session, form_id: int) -> None:
 
     db.delete(form)
     db.commit()
+
+
+def get_form_applicant_emails(db: Session, form_id: int) -> List[str]:
+    email_tuples = (
+        db.query(User.email)
+        .join(Application, Application.user_id == User.uid)
+        .filter(Application.form_id == form_id)
+        .all()
+    )
+
+    emails = [email for (email,) in email_tuples]
+    return emails
