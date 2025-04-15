@@ -159,7 +159,9 @@ const ScheduleInterviews: React.FC = () => {
     })
       .then(response => {
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          return response.json().then(err => {
+            throw new Error(err.detail || `HTTP error! Status: ${response.status}`);
+          });
         }
         return response.json();
       })
@@ -168,6 +170,7 @@ const ScheduleInterviews: React.FC = () => {
       })
       .catch(error => {
         console.error('Error:', error);
+        alert("Failed to save the schedule. Please try again.\n" + error);
       });
 
   };
