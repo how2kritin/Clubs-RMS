@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { useAuth } from "./AuthProvider.tsx";
 import Navbar from "./layout/Navbar.tsx";
+import RecommendationsPage from "./pages/RecommendationsPage.tsx";
 import ClubsPage from "./pages/ClubsPage.tsx";
 
 // ProtectedRoute component to guard private routes
@@ -52,7 +53,14 @@ export const CreateRouter = () => {
         </ProtectedRoute>
       )
     },
-
+    {
+      path: "/recommendations", // <-- Add the route definition
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={RecommendationsPage} />
+        </ProtectedRoute>
+      )
+    },
     {
       path: "/profile",
       element: (
