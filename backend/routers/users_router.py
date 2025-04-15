@@ -47,6 +47,7 @@ async def login_cas(request: Request, response: Response, db: Session = Depends(
 # Fetch the info of the currently logged-in user
 @router.get("/user_info", status_code=status.HTTP_200_OK)
 async def get_user_info(current_user: dict = Depends(get_current_user)):
+    print(current_user)
     return current_user
 
 

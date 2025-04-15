@@ -12,56 +12,76 @@ import './UserProfile.css'; // Import the CSS file
 
 const profilePictures = [avatar1, avatar2, avatar3, avatar4, avatar5];
 
-// Define the structure for user profile data
 interface UserProfileData {
   name: string;
   rollNumber: string;
   email: string;
   hobbies: string;
   skills: string[];
-  gender: 'Male' | 'Female' | 'Other' | 'Prefer not to say' | '';
   batch: 'UG1' | 'UG2' | 'UG3' | 'UG4' | 'UG5' | 'PG1' | 'PG2' | 'PHD' | '';
-  profilePicture: string; // Store the path/URL of the selected picture
+  profilePicture: number; // Stores index into profilePictures (0 to 4)
 }
 
 function UserProfile() {
   // --- State ---
   const [isEditing, setIsEditing] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserProfileData>({
-    // Initial dummy data (replace with fetched data later)
-    name: 'Rohit Sharma',
-    rollNumber: '202300001',
-    email: 'rohit.sharma@students.iiit.ac.in',
-    hobbies: 'Cricket, Reading, Coding',
-    skills: ['React', 'Python', 'FastAPI', 'TailwindCSS'],
-    gender: 'Male',
-    batch: 'UG2',
-    profilePicture: profilePictures[0], // Default to the first picture
-  });
-
+  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   // State to hold changes during editing
-  const [editedProfile, setEditedProfile] = useState<UserProfileData>(userProfile);
+  const [editedProfile, setEditedProfile] = useState<UserProfileData | null>(null);
   // State for the new skill input
   const [newSkill, setNewSkill] = useState('');
 
   // --- Effects ---
-  // Reset editedProfile whenever userProfile changes (e.g., after saving)
-  // or when switching out of edit mode without saving (if a cancel button was added)
+  // Fetch user info on component mount
   useEffect(() => {
-    setEditedProfile(userProfile);
+    async function fetchUserProfile() {
+      try {
+        const response = await fetch('/api/user/user_info');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        // Map the API response (with keys like first_name, last_name, roll_number, etc.)
+        const sanitizedData: UserProfileData = {
+          name: `${data.first_name || 'No First Name'} ${data.last_name || 'No Last Name'}`,
+          rollNumber: data.roll_number || 'N/A',
+          email: data.email || 'N/A',
+          hobbies: data.hobbies || '',
+          skills: data.skills || [],
+          batch: data.batch || '',
+          profilePicture: typeof data.profile_picture === 'number' ? data.profile_picture : 0,
+        };
+        setUserProfile(sanitizedData);
+        setEditedProfile(sanitizedData);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
+    fetchUserProfile();
+  }, []);
+
+  // Reset editedProfile whenever userProfile changes
+  useEffect(() => {
+    if (userProfile) {
+      setEditedProfile(userProfile);
+    }
   }, [userProfile]);
 
   // --- Handlers ---
   const handleEditToggle = () => {
     if (isEditing) {
-      // "Done" button clicked - Save changes
-      // TODO: Add API call here to save data to the backend
+      // "Done" button clicked - save changes via API call
+      // TODO: Add API call here to save changes to the backend.
       console.log('Saving profile:', editedProfile);
-      setUserProfile(editedProfile); // Update the main profile state
+      if (editedProfile) {
+        setUserProfile(editedProfile); // Update the main profile state
+      }
       setIsEditing(false);
     } else {
-      // "Edit Profile" button clicked - Start editing
-      setEditedProfile(userProfile); // Ensure edit state starts fresh
+      // "Edit Profile" button clicked - start editing
+      if (userProfile) {
+        setEditedProfile(userProfile); // Ensure edit state starts fresh
+      }
       setIsEditing(true);
     }
   };
@@ -70,24 +90,26 @@ function UserProfile() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setEditedProfile((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    if (editedProfile) {
+      setEditedProfile((prev) => prev && ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
-  const handleProfilePicSelect = (pic: string) => {
-    if (isEditing) {
-      setEditedProfile((prev) => ({
+  const handleProfilePicSelect = (index: number) => {
+    if (isEditing && editedProfile) {
+      setEditedProfile((prev) => prev && ({
         ...prev,
-        profilePicture: pic,
+        profilePicture: index,
       }));
     }
   };
 
   const handleAddSkill = () => {
-    if (newSkill.trim() && !editedProfile.skills.includes(newSkill.trim())) {
-      setEditedProfile((prev) => ({
+    if (editedProfile && newSkill.trim() && !editedProfile.skills.includes(newSkill.trim())) {
+      setEditedProfile((prev) => prev && ({
         ...prev,
         skills: [...prev.skills, newSkill.trim()],
       }));
@@ -96,10 +118,12 @@ function UserProfile() {
   };
 
   const handleRemoveSkill = (skillToRemove: string) => {
-    setEditedProfile((prev) => ({
-      ...prev,
-      skills: prev.skills.filter((skill) => skill !== skillToRemove),
-    }));
+    if (editedProfile) {
+      setEditedProfile((prev) => prev && ({
+        ...prev,
+        skills: prev.skills.filter((skill) => skill !== skillToRemove),
+      }));
+    }
   };
 
   // --- Render Helper ---
@@ -137,6 +161,10 @@ function UserProfile() {
     </div>
   );
 
+  if (!userProfile || !editedProfile) {
+    return <div>Loading...</div>;
+  }
+
   const currentProfile = isEditing ? editedProfile : userProfile;
 
   return (
@@ -161,21 +189,21 @@ function UserProfile() {
         <div className="profile-picture-section">
           <h2>Profile Picture</h2>
           <img
-            src={currentProfile.profilePicture}
+            src={profilePictures[currentProfile.profilePicture]}
             alt="User profile"
             className="profile-picture-main"
           />
           {isEditing && (
             <div className="profile-picture-options">
-              {profilePictures.map((pic, index) => (
+              {profilePictures.map((_, index) => (
                 <img
                   key={index}
-                  src={pic}
+                  src={profilePictures[index]}
                   alt={`Profile option ${index + 1}`}
                   className={`profile-picture-thumb ${
-                    currentProfile.profilePicture === pic ? 'selected' : ''
+                    currentProfile.profilePicture === index ? 'selected' : ''
                   }`}
-                  onClick={() => handleProfilePicSelect(pic)}
+                  onClick={() => handleProfilePicSelect(index)}
                 />
               ))}
             </div>
@@ -195,7 +223,7 @@ function UserProfile() {
                 onChange={handleInputChange}
               />
             ) : (
-              <p>{userProfile.name}</p>
+              <p>{userProfile.name || 'Not specified'}</p>
             )}
           </div>
 
@@ -210,7 +238,7 @@ function UserProfile() {
                 onChange={handleInputChange}
               />
             ) : (
-              <p>{userProfile.rollNumber}</p>
+              <p>{userProfile.rollNumber || 'Not specified'}</p>
             )}
           </div>
 
@@ -225,27 +253,7 @@ function UserProfile() {
                 onChange={handleInputChange}
               />
             ) : (
-              <p>{userProfile.email}</p>
-            )}
-          </div>
-
-          <div className="profile-field">
-            <label htmlFor="gender">Gender</label>
-            {isEditing ? (
-              <select
-                id="gender"
-                name="gender"
-                value={editedProfile.gender}
-                onChange={handleInputChange}
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-                <option value="Prefer not to say">Prefer not to say</option>
-              </select>
-            ) : (
-              <p>{userProfile.gender || 'Not specified'}</p>
+              <p>{userProfile.email || 'Not specified'}</p>
             )}
           </div>
 
