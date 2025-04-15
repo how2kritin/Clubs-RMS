@@ -1,6 +1,6 @@
 // src/pages/ClubsPage.tsx
-import React, { useState, useEffect } from 'react';
-import ClubCard from '../components/ClubCard'; // Adjust path if needed
+import React, { useState, useEffect } from "react";
+import ClubCard from "../components/ClubCard"; // Adjust path if needed
 
 // Define the structure of a Club object based on your backend schema
 interface Club {
@@ -25,12 +25,12 @@ const ClubsPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/club/all_clubs', { 
-          method: 'GET',
+        const response = await fetch("/api/club/all_clubs", {
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          credentials: 'include', 
+          credentials: "include",
         });
 
         if (!response.ok) {
@@ -41,7 +41,9 @@ const ClubsPage: React.FC = () => {
         setClubs(data);
       } catch (err: any) {
         console.error("Failed to fetch clubs:", err);
-        setError(err.message || 'Failed to load clubs. Please try again later.');
+        setError(
+          err.message || "Failed to load clubs. Please try again later.",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -57,7 +59,9 @@ const ClubsPage: React.FC = () => {
       </h1>
 
       {isLoading && (
-        <div className="text-center text-gray-600 dark:text-gray-400">Loading clubs...</div>
+        <div className="text-center text-gray-600 dark:text-gray-400">
+          Loading clubs...
+        </div>
       )}
 
       {error && (
@@ -71,7 +75,7 @@ const ClubsPage: React.FC = () => {
           {clubs.length > 0 ? (
             clubs.map((club) => (
               <ClubCard
-                key={club.cid} // Use the unique club ID as the key
+                cid={club.cid} // Use the unique club ID as the key
                 name={club.name}
                 logo={club.logo}
                 tagline={club.tagline}
@@ -89,3 +93,4 @@ const ClubsPage: React.FC = () => {
 };
 
 export default ClubsPage;
+

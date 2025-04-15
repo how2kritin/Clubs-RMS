@@ -116,7 +116,7 @@ function FormView() {
       } else {
         console.log("Form deleted successfully");
         // Redirect to the landing page.
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error("Error deleting form:", error);
