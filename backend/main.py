@@ -4,19 +4,30 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import routers.applications_router as applications_router
+import routers.clubs_router as clubs_router
 # just import whatever routers you want to import from ./routers here.
 import routers.users_router as users_router
-import routers.clubs_router as clubs_router
-from utils.database_utils import init_db
+from models.clubs.clubs_sync import sync_clubs
+from utils.database_utils import init_db, SessionLocal
 
 # FastAPI instance here, along with CORS middleware
 DEBUG = getenv("DEBUG_BACKEND", "False").lower() in ("true", "t", "1")
 app = FastAPI(debug=DEBUG, title="Recruitment Management System backend", description="Backend for the RMS-IIITH", )
 app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=["*"], allow_headers=["*"],
-    allow_methods=["GET", "POST"], )
+                   allow_methods=["GET", "POST"], )
 
-# initialize the postgresql database.
-init_db()
+# tasks to run on server startup.
+@app.on_event("startup")
+async def on_startup():
+    # initialize the postgresql database.
+    init_db()
+    db = SessionLocal()
+
+    # sync clubs data from Clubs Council API
+    try:
+        await sync_clubs(db)
+    finally:
+        db.close()
 
 
 # base path for checking if the backend is alive.
