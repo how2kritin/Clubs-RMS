@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from models.users.users_model import User
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
+from utils.ldap_utils import get_user_by_email
 
 
 async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_address: str, cas_client: CASClientV3,
@@ -21,7 +22,9 @@ async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_ad
             first_name = attributes['FirstName']
             last_name = attributes['LastName']
             uid = attributes['uid']
-
+            
+            print(get_user_by_email(email))
+            
             # look up user in database
             db_user = db.query(User).filter(User.uid == uid).first()
 
@@ -34,9 +37,6 @@ async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_ad
 
             # create session token and set cookie
             encrypted_session_id = create_session(user_uid=uid, user_agent=user_agent, ip_address=ip_address, db=db)
-            # response.set_cookie(key=SESSION_COOKIE_NAME, value=encrypted_session_id, httponly=True, secure=True,
-            #     samesite="lax"  # protection against CSRF
-            # )
             
     return encrypted_session_id
 
