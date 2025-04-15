@@ -26,6 +26,8 @@ def get_db():
     finally:
         db.close()
 
+def delete_db():
+    Base.metadata.drop_all(bind=engine)
 
 # util to drop all tables (do not recreate them). returns true if successful, false if it fails.
 def drop_all_tables() -> bool:
