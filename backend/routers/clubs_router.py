@@ -11,7 +11,6 @@ router = APIRouter()
 
 
 class ClubResponse(BaseModel):
-    id: int
     cid: str
     name: str
     category: str = None
@@ -27,14 +26,14 @@ class ClubResponse(BaseModel):
 
 
 # Get info about all the clubs.
-@router.get("/clubs/", response_model=List[ClubResponse], status_code=status.HTTP_200_OK)
+@router.get("/all_clubs", response_model=List[ClubResponse], status_code=status.HTTP_200_OK)
 async def get_all_club_information(db: Session = Depends(get_db)):
     clubs = db.query(Club).all()
     return clubs
 
 
 # Get info about a specific club by CID.
-@router.get("/clubs/{cid}", response_model=ClubResponse, status_code=status.HTTP_200_OK)
+@router.get("/{cid}", response_model=ClubResponse, status_code=status.HTTP_200_OK)
 async def get_club_by_id(cid: str, db: Session = Depends(get_db)):
     club = db.query(Club).filter(Club.cid == cid).first()
     if club is None:
