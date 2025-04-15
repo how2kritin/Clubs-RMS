@@ -15,7 +15,7 @@ router = APIRouter()
     "/all_clubs", response_model=List[ClubResponse], status_code=status.HTTP_200_OK
 )
 async def get_all_club_information(db: Session = Depends(get_db)):
-    clubs = db.query(Club).all()
+    clubs = db.query(Club).order_by(Club.name).all()
     return clubs
 
 
