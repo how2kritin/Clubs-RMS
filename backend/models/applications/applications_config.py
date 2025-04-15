@@ -1,21 +1,19 @@
 from sqlalchemy.orm import Session
 from models.applications.applications_model import Application
-from utils.database_utils import SessionLocal
+from schemas.applications.applications import ApplicationStatusUpdate
+
+from fastapi import HTTPException
 
 
-def get_applicants_by_form(form_id: int):
-    db: Session = SessionLocal()
-    try:
-        applicants = db.query(Application).filter(Application.form_id == form_id).all()
-        return applicants
-    finally:
-        db.close()
+def update_application_status(
+    db: Session, application_id: int, status_update: ApplicationStatusUpdate
+):
+    application = db.query(Application).filter(Application.id == application_id).first()
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
 
+    application.status = status_update.status  # type: ignore
 
-if __name__ == "__main__":
-    form_id = 1  # form ID
-    applications = get_applicants_by_form(form_id)
-    for application in applications:
-        print(
-            f"User ID: {application.user_id}, Submitted At: {application.submitted_at}"
-        )
+    db.commit()
+    db.refresh(application)
+    return application
