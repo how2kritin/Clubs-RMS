@@ -19,12 +19,11 @@ async def get_or_create_user(db: Session, uid: str) -> User | None:
     if not user:
         try:
             # get user details from LDAP
-            search_filter = f"uid={uid}"
+            search_filter = f"(uid={uid})"
             user_details = get_user_by_search_filter(search_filter=search_filter)
             email = (
                 user_details.get("mail", [b""])[0].decode("utf-8")
-                if user_details.get("mail")
-                else f"{uid}@students.iiit.ac.in"
+                if user_details.get("mail") else ""
             )
             first_name = (
                 user_details.get("givenName", [b""])[0].decode("utf-8")
@@ -55,7 +54,7 @@ async def get_or_create_user(db: Session, uid: str) -> User | None:
             db.refresh(user)
 
         except Exception as e:
-            logger.error(f"Error creating user from LDAP data: {e}")
+            logger.error(f"{uid}: Error creating user from LDAP data: {e}")
             return None
 
     return user
