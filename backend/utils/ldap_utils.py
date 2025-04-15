@@ -7,6 +7,11 @@ from os import getenv
 
 import ldap
 
+if __name__ == "__main__":
+    from dotenv import load_dotenv
+
+    load_dotenv('../envs/.env')
+
 # LDAP server configuration
 LDAP_SERVER = getenv("LDAP_SERVER", "ldap://localhost:389")
 BASE_DN = getenv("BASE_DN", "dc=example,dc=com")
