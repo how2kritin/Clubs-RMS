@@ -8,6 +8,8 @@ import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { useAuth } from "./AuthProvider.tsx";
 import Navbar from "./layout/Navbar.tsx";
+import ClubForms from "./pages/ClubForms.tsx";
+import FormView from "./pages/FormView.tsx";
 
 // ProtectedRoute component to guard private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -64,6 +66,22 @@ export const CreateRouter = () => {
       element: (
         <ProtectedRoute>
           <PageLayout customPage={CreateForm} />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/club/:clubId",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={ClubForms} />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/form/:formId",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={FormView} />
         </ProtectedRoute>
       ),
     },

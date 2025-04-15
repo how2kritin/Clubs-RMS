@@ -1,0 +1,35 @@
+.form-view {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-view h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.form-view p {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #555;
+}
+
+.questions-list {
+  list-style: none;
+  padding: 0;
+}
+
+.questions-list li {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.questions-list li:last-child {
+  border-bottom: none;
+}
