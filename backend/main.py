@@ -7,7 +7,7 @@ import routers.applications_router as applications_router
 # just import whatever routers you want to import from ./routers here.
 import routers.users_router as users_router
 import routers.clubs_router as clubs_router
-from utils.database_utils import init_db
+from utils.database_utils import init_db, delete_db
 
 # FastAPI instance here, along with CORS middleware
 DEBUG = getenv("DEBUG_BACKEND", "False").lower() in ("true", "t", "1")
@@ -16,6 +16,7 @@ app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=["*"], 
     allow_methods=["GET", "POST"], )
 
 # initialize the postgresql database.
+delete_db()
 init_db()
 
 
