@@ -7,6 +7,7 @@ import routers.applications_router as applications_router
 # just import whatever routers you want to import from ./routers here.
 import routers.users_router as users_router
 import routers.clubs_router as clubs_router
+import routers.interviews_router as interviews_router
 from utils.database_utils import init_db
 
 # FastAPI instance here, along with CORS middleware
@@ -29,3 +30,4 @@ async def index():
 app.include_router(users_router.router, prefix="/api/user", tags=["User Management"])
 app.include_router(clubs_router.router, prefix="/api/club", tags=["Club Management"])
 app.include_router(applications_router.router, prefix="/api/application", tags=["Application Management"], )
+app.include_router(interviews_router.router, prefix="/api/interviews", tags=["Interview Scheduling"], )

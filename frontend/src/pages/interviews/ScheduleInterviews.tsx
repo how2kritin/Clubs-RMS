@@ -150,6 +150,26 @@ const ScheduleInterviews: React.FC = () => {
     };
 
     console.log('Form submitted:', formattedData);
+    fetch('/api/interviews/schedule_interviews', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formattedData),
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Success:', data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+
   };
 
   return (
