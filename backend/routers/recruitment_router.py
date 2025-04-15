@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from schemas.form.form import FormCreate, FormOut, FormUpdate
@@ -65,7 +65,7 @@ def delete_existing_form(form_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return JSONResponse(content=form_id, status_code=status.HTTP_204_NO_CONTENT)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/forms/{form_id}/applicants/emails", response_model=List[str])
