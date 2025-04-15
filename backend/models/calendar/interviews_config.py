@@ -3,13 +3,13 @@ from typing import List, Tuple
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
+from models.applications.applications_model import Application
 from models.calendar.interview_models import (
     InterviewSlot,
     InterviewSchedule,
     InterviewPanel,
 )
-
-# from models.calendar.calendar_events_model import CalendarEvent
+from models.calendar.calendar_events_model import CalendarEvent, CalendarEventType
 
 
 # Pydantic models to validate the incoming JSON data
@@ -214,3 +214,80 @@ def create_schedule(
         panel_ids.append(interview_panel.id)
 
     return schedule_id, slot_ids, panel_ids
+
+
+def allocate_calendar_events(
+    schedule_id: int,
+    slot_ids: List[int],
+    panel_ids: List[int],
+    db: Session,
+    club_id: str,
+    form_id: str,
+):
+
+    # get all applications submitted for the form
+    applications = (
+        db.query(Application)
+        .filter(
+            Application.form_id == form_id,
+        )
+        .all()
+    )
+
+    # allocate calendar events to the applicants
+    cur_application: int = 0
+    event_ids: List[int] = []
+    for slot_id in slot_ids:
+        if cur_application >= len(applications):
+            break
+
+        interview_slot = (
+            db.query(InterviewSlot)
+            .filter(
+                InterviewSlot.id == slot_id,
+                InterviewSlot.interview_schedule_id == schedule_id,
+                InterviewSlot.club_id == club_id,
+            )
+            .first()
+        )
+
+        for panel_id in panel_ids:
+            if cur_application >= len(applications):
+                break
+
+            application = applications[cur_application]
+
+            existing_calendar_event = (
+                db.query(CalendarEvent)
+                .filter(
+                    CalendarEvent.interview_schedule_id == schedule_id,
+                    CalendarEvent.panel_id == panel_id,
+                    CalendarEvent.interview_slot_id == slot_id,
+                    CalendarEvent.visible_to_user == application.user_id,
+                    CalendarEvent.club_id == club_id,
+                )
+                .first()
+            )
+
+            if not existing_calendar_event:
+                calendar_event = CalendarEvent(
+                    interview_schedule_id=schedule_id,
+                    panel_id=panel_id,
+                    interview_slot_id=slot_id,
+                    visible_to_user=application.user_id,
+                    club_id=club_id,
+                    type=CalendarEventType.interview,
+                    title=f"Interview for {application.user_id} for club {club_id} for form {form_id}",
+                    start_time=interview_slot.start_time,
+                    end_time=interview_slot.end_time,
+                )
+                db.add(calendar_event)
+                db.commit()
+                db.refresh(calendar_event)
+            else:
+                calendar_event = existing_calendar_event
+
+            event_ids.append(calendar_event.id)
+            cur_application += 1
+
+    return event_ids

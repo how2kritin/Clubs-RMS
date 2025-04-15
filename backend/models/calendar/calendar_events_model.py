@@ -6,7 +6,7 @@ from utils.database_utils import Base
 
 # TODO: generalisation is future scope?
 class CalendarEventType(enum.Enum):
-    interview_slot = "interview_slot"
+    interview = "interview"
 
 
 class CalendarEvent(Base):
@@ -74,7 +74,7 @@ class CalendarEvent(Base):
         nullable=False,
     )
     title = Column(String, nullable=False)
-    description = Column(String, nullable=True)
+    # description = Column(String, nullable=True)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
-    location = Column(String, nullable=True)
+    # location = Column(String, nullable=True)

@@ -14,6 +14,7 @@ from models.calendar.interviews_config import (
     parse_schedule_interview_form_data,
     calculate_interview_slots,
     create_schedule,
+    allocate_calendar_events,
 )
 
 router = APIRouter()
@@ -51,16 +52,17 @@ async def schedule_interviews(
     # TODO: remove when testing is done
     # create club with uid
     from models.clubs.clubs_model import Club
+
     club = Club(cid=cur_user["uid"], name="Interview Club")
     db.add(club)
     db.commit()
     db.refresh(club)
     print("Club created successfully")
 
-
     # TODO: remove when testing is done
     # TODO: get the form ID from the form data
     from models.club_recruitment.club_recruitment_model import Form
+
     form = Form(club_id=cur_user["uid"], name="Interview Form")
     db.add(form)
     db.commit()
@@ -79,6 +81,56 @@ async def schedule_interviews(
     print("Interview schedule created successfully")
     print(schedule_id, slot_ids, panel_ids)
 
+    # TODO: remove after testing
+    # create applications
+    from models.applications.applications_model import Application
+    from models.users.users_model import User
+    for uid in [
+        "varun.edachali",
+        "shaunak.biswas",
+        "ashutosh.rudrabhatla",
+        "kritin.madireddy",
+        "vamsi.krishna",
+    ]:
+        exisiting_user = db.query(User).filter(User.uid == uid).first()
+        if exisiting_user:
+            print("User already exists")
+        else:
+            user = User(
+                uid=uid,
+                email=uid + "@students.iiit.ac.in",
+                first_name=uid,
+                last_name=uid,
+                roll_number=uid,
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            print("User created successfully")
+
+        print(user.uid)
+        application = Application(
+            form_id=form_id,
+            user_id=uid,
+            status="ongoing",
+        )
+
+        db.add(application)
+        db.commit()
+        db.refresh(application)
+        print("Application created successfully")
+        print(application.id)
+
     # TODO: allocate applicants to slots
+    event_ids = allocate_calendar_events(
+        schedule_id=schedule_id,
+        slot_ids=slot_ids,
+        panel_ids=panel_ids,
+        db=db,
+        club_id=cur_user["uid"],
+        form_id=form_id,
+    )
+    print("Allocated calendar events successfully")
+    print(event_ids)
 
     return {"message": "Interviews scheduled successfully"}
