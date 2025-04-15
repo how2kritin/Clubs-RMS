@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./CreateForm.css";
 
 interface Question {
@@ -17,6 +17,7 @@ interface FormData {
 function CreateForm() {
   // Extract the clubId from the URL parameters.
   const { clubId } = useParams<{ clubId: string }>();
+  const navigate = useNavigate();
 
   const [formName, setFormName] = useState<string>("");
   // Store the deadline as a string to work with the datetime-local input.
@@ -69,7 +70,7 @@ function CreateForm() {
       } else {
         const data = await response.json();
         console.log("Form created successfully:", data);
-        // Optionally clear the form or redirect the user.
+        navigate(`/form/${data.id}`);
       }
     } catch (error) {
       console.error("Error:", error);
