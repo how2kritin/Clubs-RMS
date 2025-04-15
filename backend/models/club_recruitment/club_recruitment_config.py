@@ -79,3 +79,13 @@ def get_form_applicant_emails(db: Session, form_id: int) -> List[str]:
 
     emails = [email for (email,) in email_tuples]
     return emails
+
+
+def get_form_by_id(db: Session, form_id: int) -> Form:
+    form = db.query(Form).filter(Form.id == form_id).first()
+    return form
+
+
+def get_forms_by_club(db: Session, club_id: str) -> List[Form]:
+    forms = db.query(Form).filter(Form.club_id == club_id).all()
+    return forms

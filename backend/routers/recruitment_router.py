@@ -8,6 +8,8 @@ from models.club_recruitment.club_recruitment_config import (
     create_form,
     delete_form,
     get_form_applicant_emails,
+    get_form_by_id,
+    get_forms_by_club,
     update_form,
 )
 
@@ -21,6 +23,24 @@ def create_new_form(form_data: FormCreate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return new_form
+
+
+@router.get("/forms/club/{club_id}", response_model=List[FormOut])
+def get_all_forms(club_id: str, db: Session = Depends(get_db)):
+    try:
+        forms = get_forms_by_club(db, club_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return forms
+
+
+@router.get("/forms/{form_id}", response_model=FormOut)
+def get_form(form_id: int, db: Session = Depends(get_db)):
+    try:
+        form = get_form_by_id(db, form_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return form
 
 
 @router.put("/forms/{form_id}", response_model=FormOut)
