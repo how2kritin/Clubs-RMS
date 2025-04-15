@@ -19,6 +19,7 @@ const Navbar = () => {
   const navRoutes = [
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/profile', label: 'Profile' },
+    { path: '/clubs', label: 'Clubs' },
   ];
 
     // Only render the Navbar if the user is logged in
