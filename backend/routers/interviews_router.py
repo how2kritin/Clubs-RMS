@@ -1,19 +1,19 @@
-from fastapi import APIRouter, status, Body, HTTPException, Cookie
+from fastapi import APIRouter, status, Body, HTTPException, Cookie, Depends
 import json
 
 from sqlalchemy.orm import Session
 
-from routers.users_router import get_user_info, get_current_user
+from routers.users_router import get_current_user
 from utils.database_utils import get_db
-from utils.session_utils import SESSION_COOKIE_NAME, validate_session
-from fastapi import Depends
+from utils.session_utils import SESSION_COOKIE_NAME
 
 
 from models.calendar.interviews_config import (
     ScheduleInterviewFormResponseStr,
-    ScheduleInterviewFormResponse,
+    ScheduleInterviewFormResponseDatetime,
     parse_schedule_interview_form_data,
     calculate_interview_slots,
+    create_schedule,
 )
 
 router = APIRouter()
@@ -30,7 +30,7 @@ async def schedule_interviews(
 
     try:
         # convert to date and time and all
-        form_data_parsed: ScheduleInterviewFormResponse = (
+        form_data_parsed: ScheduleInterviewFormResponseDatetime = (
             parse_schedule_interview_form_data(form_data)
         )
         print("Parsed interview schedule data:")
@@ -44,8 +44,28 @@ async def schedule_interviews(
     # calculate interview slots and create slots, panels and a schedule
     interview_slots = calculate_interview_slots(form_data_parsed)
 
+    # TODO: RBAC?
+    # must be the club account
     cur_user = await get_current_user(encrypted_session_id, db)
-    print(cur_user)
+
+    # TODO: get the form ID from the form data
+    form_id = 1
+    from models.applications.applications_model import Form
+    form = Form(id=form_id, club_id=cur_user["uid"])
+    db.add(form)
+    db.commit()
+    db.refresh(form)
+
+    schedule_id, slot_ids, panel_ids = create_schedule(
+        club_id=cur_user["uid"],
+        form_id=form_id,
+        slots=interview_slots,
+        slot_length=form_data_parsed.interviewSchedule.slotDurationMinutes,
+        num_panels=form_data_parsed.interviewSchedule.interviewPanelCount,
+        db=db,
+    )
+    print("Interview schedule created successfully")
+    print(schedule_id, slot_ids, panel_ids)
 
     # TODO: allocate applicants to slots
 

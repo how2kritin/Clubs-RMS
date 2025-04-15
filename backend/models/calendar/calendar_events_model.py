@@ -61,17 +61,16 @@ class CalendarEvent(Base):
     # TODO: check with CC data/dummy data
     club_id = Column(
         String,
-        ForeignKey("clubs.id"),
+        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
         nullable=True,
     )
-    club = relationship(
-        "Club",
-        backref="calendar_event",
-    )
+    # club = relationship(
+    #     "Club",
+    #     backref="calendar_event",
+    # )
 
     type = Column(
         Enum(CalendarEventType),
-        default=CalendarEventType.event,
         nullable=False,
     )
     title = Column(String, nullable=False)

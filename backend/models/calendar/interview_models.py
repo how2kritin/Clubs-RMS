@@ -1,5 +1,12 @@
-import enum
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Time, Date
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Enum,
+    ForeignKey,
+    Time,
+    Date,
+)
 from sqlalchemy.orm import relationship
 from utils.database_utils import Base
 
@@ -24,13 +31,13 @@ class InterviewSlot(Base):
 
     club_id = Column(
         String,
-        ForeignKey("clubs.id"),
+        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
         nullable=False,
     )
-    club = relationship(
-        "Club",
-        backref="interview_slot",
-    )
+    # club = relationship(
+    #     "Club",
+    #     backref="interview_slot",
+    # )
 
 
 class InterviewPanel(Base):
@@ -50,13 +57,13 @@ class InterviewPanel(Base):
 
     club_id = Column(
         String,
-        ForeignKey("clubs.id"),
+        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
         nullable=False,
     )
-    club = relationship(
-        "Club",
-        backref="interview_panel",
-    )
+    # club = relationship(
+    #     "Club",
+    #     backref="interview_panel",
+    # )
 
     # num_interviewers = Column(Integer, nullable=False)
     # TODO: add interview names?
@@ -72,20 +79,21 @@ class InterviewSchedule(Base):
         ForeignKey("forms.id"),
         nullable=False,
     )
-    form = relationship(
-        "Form",
-        backref="interview_schedule",
-    )
+    # form = relationship(
+    #     "Form",
+    #     backref="interview_schedule",
+    # )
 
     # TODO: check with CC data/dummy data
     club_id = Column(
         String,
-        ForeignKey("clubs.id"),
+        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
         nullable=False,
     )
-    club = relationship(
-        "Club",
-        backref="interview_schedule",
-    )
+    # club = relationship(
+    #     "Club",
+    #     backref="interview_schedule",
+    # )
 
     slot_length = Column(Integer, nullable=False)  # in minutes
+    num_panels = Column(Integer, nullable=False)
