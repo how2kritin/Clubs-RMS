@@ -15,6 +15,12 @@ class FormCreate(BaseModel):
     questions: Optional[List[QuestionCreate]] = []
 
 
+class FormUpdate(BaseModel):
+    name: Optional[str]
+    deadline: Optional[datetime]
+    questions: Optional[List[QuestionCreate]]
+
+
 class QuestionOut(BaseModel):
     id: int
     question_text: str

@@ -1,9 +1,11 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from models.applications.applications_model import Application
 from models.club_recruitment.club_recruitment_model import (
     Form,
     Question,
 )
-from schemas.form.form import FormCreate
+from schemas.form.form import FormCreate, FormUpdate
 
 
 def create_form(db: Session, form_data: FormCreate) -> Form:
@@ -23,3 +25,43 @@ def create_form(db: Session, form_data: FormCreate) -> Form:
     db.commit()
     db.refresh(db_form)
     return db_form
+
+
+def update_form(db: Session, form_id: int, form_data: FormUpdate) -> Form:
+    form = db.query(Form).filter(Form.id == form_id).first()
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+
+    if form_data.name is not None:
+        form.name = form_data.name  # type: ignore
+
+    if form_data.deadline is not None:
+        form.deadline = form_data.deadline  # type: ignore
+
+    # if questions are updated, delete current questions + applications
+    if form_data.questions is not None:
+        # delete applications + cascaded responses
+        db.query(Application).filter(Application.form_id == form_id).delete()
+
+        # delete existing questions
+        form.questions.clear()
+
+        # add new questions
+        for q in form_data.questions:
+            new_q = Question(
+                question_text=q.question_text, question_order=q.question_order
+            )
+            form.questions.append(new_q)
+
+    db.commit()
+    db.refresh(form)
+    return form
+
+
+def delete_form(db: Session, form_id: int) -> None:
+    form = db.query(Form).filter(Form.id == form_id).first()
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+
+    db.delete(form)
+    db.commit()
