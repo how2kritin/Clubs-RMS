@@ -27,7 +27,7 @@ def encrypt_data(data: str) -> str:
     key, salt = generate_key(SECRET_KEY)
     f = Fernet(key)
     encrypted_data = f.encrypt(data.encode())
-    # Prepend salt to encrypted data
+    # prepend salt to encrypted data
     return base64.urlsafe_b64encode(salt + encrypted_data).decode()
 
 

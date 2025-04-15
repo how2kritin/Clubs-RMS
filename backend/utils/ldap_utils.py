@@ -7,17 +7,21 @@ from os import getenv
 
 import ldap
 
+if __name__ == "__main__":
+    from dotenv import load_dotenv
+
+    load_dotenv('../envs/.env')
+
 # LDAP server configuration
 LDAP_SERVER = getenv("LDAP_SERVER", "ldap://localhost:389")
 BASE_DN = getenv("BASE_DN", "dc=example,dc=com")
 
 
-def get_user_by_email(email):
+def get_user_by_search_filter(search_filter):
     try:
         conn = ldap.initialize(LDAP_SERVER)
         conn.simple_bind_s()
 
-        search_filter = f"(mail={email})"
         results = conn.search_s(BASE_DN, ldap.SCOPE_SUBTREE, search_filter)
 
         if results:
@@ -57,4 +61,4 @@ def authenticate_user(email, password):
 
 
 if __name__ == "__main__":
-    print(get_user_by_email("kritin.maddireddy@students.iiit.ac.in"))
+    print(get_user_by_search_filter(search_filter=f"(uid=kritin.maddireddy)"))

@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { useAuth } from "./AuthProvider.tsx";
 import Navbar from "./layout/Navbar.tsx";
+import ClubsPage from "./pages/ClubsPage.tsx";
 
 // ProtectedRoute component to guard private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -44,6 +45,15 @@ export const CreateRouter = () => {
         </ProtectedRoute>
       )
     },
+    {
+      path: "/clubs", 
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={ClubsPage} />
+        </ProtectedRoute>
+      )
+    },
+
     {
       path: "/profile",
       element: (
