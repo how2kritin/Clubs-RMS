@@ -127,7 +127,7 @@ def calculate_interview_slots(
 def create_schedule(
     club_id: str,
     form_id: str,
-    slots: List[Tuple[datetime]],
+    slots: List[Tuple[datetime, datetime, datetime]],
     slot_length: int,
     num_panels: int,
     db: Session,
@@ -164,8 +164,8 @@ def create_schedule(
         existing_slot = (
             db.query(InterviewSlot)
             .filter(
-                InterviewSlot.start_time == start_time,
-                InterviewSlot.end_time == end_time,
+                InterviewSlot.start_time == start_time.time(),
+                InterviewSlot.end_time == end_time.time(),
                 InterviewSlot.date == date,
                 InterviewSlot.interview_schedule_id == interview_schedule.id,
             )
@@ -174,8 +174,8 @@ def create_schedule(
 
         if not existing_slot:
             interview_slot = InterviewSlot(
-                start_time=start_time,
-                end_time=end_time,
+                start_time=start_time.time(),
+                end_time=end_time.time(),
                 date=date,
                 interview_schedule_id=interview_schedule.id,
                 club_id=club_id,

@@ -31,7 +31,7 @@ class InterviewSlot(Base):
 
     club_id = Column(
         String,
-        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
+        ForeignKey("clubs.cid"),
         nullable=False,
     )
     # club = relationship(
@@ -57,7 +57,7 @@ class InterviewPanel(Base):
 
     club_id = Column(
         String,
-        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
+        ForeignKey("clubs.cid"),
         nullable=False,
     )
     # club = relationship(
@@ -87,7 +87,7 @@ class InterviewSchedule(Base):
     # TODO: check with CC data/dummy data
     club_id = Column(
         String,
-        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
+        ForeignKey("clubs.cid"),
         nullable=False,
     )
     # club = relationship(

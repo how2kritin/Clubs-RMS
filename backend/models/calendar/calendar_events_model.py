@@ -49,19 +49,19 @@ class CalendarEvent(Base):
     # else, it's the applicant user
     # always visible to club members
     visible_to_user = Column(
-        Integer,
-        ForeignKey("users.id"),
+        String,
+        ForeignKey("users.uid"),
         nullable=True,
     )
-    user = relationship(
-        "User",
-        backref="calendar_event",
-    )
+    # user = relationship(
+    #     "User",
+    #     backref="calendar_event",
+    # )
 
     # TODO: check with CC data/dummy data
     club_id = Column(
         String,
-        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
+        ForeignKey("clubs.cid"),
         nullable=True,
     )
     # club = relationship(

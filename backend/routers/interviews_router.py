@@ -48,13 +48,25 @@ async def schedule_interviews(
     # must be the club account
     cur_user = await get_current_user(encrypted_session_id, db)
 
+    # TODO: remove when testing is done
+    # create club with uid
+    from models.clubs.clubs_model import Club
+    club = Club(cid=cur_user["uid"], name="Interview Club")
+    db.add(club)
+    db.commit()
+    db.refresh(club)
+    print("Club created successfully")
+
+
+    # TODO: remove when testing is done
     # TODO: get the form ID from the form data
-    form_id = 1
-    from models.applications.applications_model import Form
-    form = Form(id=form_id, club_id=cur_user["uid"])
+    from models.club_recruitment.club_recruitment_model import Form
+    form = Form(club_id=cur_user["uid"], name="Interview Form")
     db.add(form)
     db.commit()
     db.refresh(form)
+    form_id = form.id
+    print("Form ID:", form_id)
 
     schedule_id, slot_ids, panel_ids = create_schedule(
         club_id=cur_user["uid"],

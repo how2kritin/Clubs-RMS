@@ -10,7 +10,7 @@ import routers.recruitment_router as recruitment_router
 import routers.users_router as users_router
 
 from models.clubs.clubs_sync import sync_clubs
-from utils.database_utils import init_db, SessionLocal
+from utils.database_utils import reset_db, SessionLocal
 import routers.clubs_router as clubs_router
 import routers.interviews_router as interviews_router
 
@@ -25,7 +25,7 @@ app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=["*"], 
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    init_db()
+    reset_db() # TODO: check
     db = SessionLocal()
 
     # sync clubs data from Clubs Council API
