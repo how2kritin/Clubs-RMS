@@ -9,8 +9,11 @@ import routers.recruitment_router as recruitment_router
 # just import whatever routers you want to import from ./routers here.
 import routers.users_router as users_router
 import routers.recommendations as recommendations_router
+
 from models.clubs.clubs_sync import sync_clubs
 from utils.database_utils import init_db, SessionLocal
+import routers.clubs_router as clubs_router
+import routers.interviews_router as interviews_router
 
 # FastAPI instance here, along with CORS middleware
 DEBUG = getenv("DEBUG_BACKEND", "False").lower() in ("true", "t", "1")
@@ -45,3 +48,4 @@ app.include_router(clubs_router.router, prefix="/api/club", tags=["Club Manageme
 app.include_router(applications_router.router, prefix="/api/application", tags=["Application Management"], )
 app.include_router(recruitment_router.router, prefix="/api/recruitment", tags=["Club Recruitment Management"], )
 app.include_router(recommendations_router.router, prefix="/api", tags=["Recommendations"])
+app.include_router(interviews_router.router, prefix="/api/interviews", tags=["Interview Scheduling"], )

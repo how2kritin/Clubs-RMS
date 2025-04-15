@@ -7,6 +7,7 @@ from sqlalchemy import (
     Text,
     DateTime,
     UniqueConstraint,
+
     String,
 )
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -36,6 +37,7 @@ class Application(Base):
     )
     __table_args__ = (
         UniqueConstraint("user_id", "form_id", name="uq_user_id_form_id"),
+
     )
 
     submitted_at = Column(DateTime, default=datetime.now(timezone.utc))

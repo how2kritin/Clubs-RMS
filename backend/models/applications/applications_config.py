@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from models.applications.applications_model import Application
+
 from schemas.applications.applications import ApplicationStatusUpdate
 
 from fastapi import HTTPException
