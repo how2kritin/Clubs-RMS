@@ -6,7 +6,7 @@ courtesy of https://github.com/bhavberi
 """
 
 from os import getenv
-from typing import List, Optional  # Added for Pydantic model
+from typing import List
 
 from cas import CASClient
 from fastapi import (
@@ -18,19 +18,18 @@ from fastapi import (
     Cookie,
     HTTPException,
 )  # Added HTTPException
-from pydantic import BaseModel, Field  # Added for request body validation
 from sqlalchemy.orm import Session
 
-from models.users.users_config import user_login_cas, user_logout
+from models.users.users_config import get_clubs_by_user, user_login_cas, user_logout
 from models.users.users_model import User  # Import User model
+from schemas.clubs.clubs import ClubResponse
+from schemas.user.user import UserProfileUpdate
 from utils.database_utils import get_db
 from utils.session_utils import (
     SESSION_COOKIE_NAME,
     check_current_user,
     get_current_user,
-    invalidate_session,
 )  # Added invalidate_session for logout
-from fastapi.responses import RedirectResponse
 
 
 CAS_SERVER_URL = getenv("CAS_SERVER_URL")
@@ -41,17 +40,6 @@ cas_client = CASClient(
 )
 
 router = APIRouter()
-
-
-class UserProfileUpdate(BaseModel):
-    hobbies: Optional[str] = None  # Allow null/empty string from frontend
-    skills: Optional[List[str]] = None  # Allow empty list
-    profile_picture: Optional[int] = Field(
-        None, ge=0, le=4
-    )  # Validate range 0-4 (assuming 5 pictures)
-
-    class Config:
-        from_attributes = True  # Enable ORM mode equivalent for Pydantic v2+
 
 
 # --- Routes ---
@@ -88,6 +76,16 @@ async def login_cas(
 async def get_user_info(current_user: dict = Depends(get_current_user)):
     print(current_user)
     return current_user
+
+
+@router.get(
+    "/user_club_info", status_code=status.HTTP_200_OK, response_model=List[ClubResponse]
+)
+async def get_user_club_info(
+    current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    clubs = get_clubs_by_user(current_user["uid"], db)
+    return clubs
 
 
 # Check if a user is logged in
