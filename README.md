@@ -6,7 +6,7 @@
 
 Build the container and run it:
 ```bash
-docker compose up --build -d
+docker compose up --build
 ```
 
 To open a shell in the container, run
