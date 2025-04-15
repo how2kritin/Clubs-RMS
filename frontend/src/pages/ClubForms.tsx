@@ -14,17 +14,9 @@ function ClubForms() {
 
   useEffect(() => {
     async function fetchForms() {
-      // TODO: Replace with actual API call, e.g.:
       const response = await fetch(`/api/recruitment/forms/club/${clubId}`);
       const data = await response.json();
       setForms(data);
-
-      // // Placeholder dummy data:
-      // setForms([
-      //   { id: "1", name: "Recruitment Form A" },
-      //   { id: "2", name: "Membership Form B" },
-      //   { id: "3", name: "Event Signup Form C" },
-      // ]);
     }
 
     if (clubId) {

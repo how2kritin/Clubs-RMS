@@ -16,9 +16,9 @@ class FormCreate(BaseModel):
 
 
 class FormUpdate(BaseModel):
-    name: Optional[str]
-    deadline: Optional[datetime]
-    questions: Optional[List[QuestionCreate]]
+    name: Optional[str] = None
+    deadline: Optional[datetime] = None
+    questions: Optional[List[QuestionCreate]] = None
 
 
 class QuestionOut(BaseModel):
@@ -33,8 +33,8 @@ class QuestionOut(BaseModel):
 class FormOut(BaseModel):
     id: int
     name: str
-    club_id: Optional[str]
-    deadline: Optional[datetime]
+    club_id: Optional[str] = None
+    deadline: Optional[datetime] = None
     created_at: datetime
     questions: List[QuestionOut] = []
 

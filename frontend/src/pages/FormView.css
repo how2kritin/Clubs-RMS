@@ -1,23 +1,39 @@
 .form-view {
-  max-width: 600px;
+  max-width: 700px;
   margin: 2rem auto;
   padding: 1.5rem;
-  background-color: #fff;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
   border-radius: 8px;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .form-view h2 {
   text-align: center;
-  margin-bottom: 1rem;
   color: #333;
+  margin-bottom: 0.5rem;
 }
 
 .form-view p {
   text-align: center;
-  margin-bottom: 1.5rem;
   color: #555;
+  margin-bottom: 1.5rem;
+}
+
+/* Editable header inputs container */
+.form-header-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-header-edit input[type="text"],
+.form-header-edit input[type="datetime-local"] {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .questions-list {
@@ -26,10 +42,84 @@
 }
 
 .questions-list li {
-  padding: 0.75rem;
-  border-bottom: 1px solid #eee;
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
 }
 
-.questions-list li:last-child {
-  border-bottom: none;
+.questions-list input[type="text"] {
+  flex: 1;
+  margin-left: 0.5rem;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Style for the Remove button next to each question */
+.remove-btn {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.9rem;
+  color: #fff;
+  background-color: #e74c3c;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background-color: #c0392b;
+}
+
+/* Buttons for adding a question */
+.action-buttons {
+  margin-top: 1rem;
+}
+
+.add-btn {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  color: #fff;
+  background-color: #28a745;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-btn:hover {
+  background-color: #218838;
+}
+
+.edit-buttons {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.edit-buttons button,
+.form-view > button {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-buttons button:first-child,
+.form-view > button {
+  background-color: #0077cc;
+}
+
+.edit-buttons button:first-child:hover,
+.form-view > button:hover {
+  background-color: #005fa3;
+}
+
+.edit-buttons button:last-child {
+  background-color: #aaa;
+}
+
+.edit-buttons button:last-child:hover {
+  background-color: #888;
 }
