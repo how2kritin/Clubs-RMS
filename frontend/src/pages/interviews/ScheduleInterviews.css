@@ -1,0 +1,280 @@
+/* ScheduleInterviews.css */
+
+/* Main container */
+.schedule-container {
+    max-width: 64rem;
+    /* 4xl in Tailwind */
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Page title */
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #2563eb;
+    /* blue-800 */
+}
+
+/* Form styles */
+.schedule-form {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    color: #374151;
+    /* gray-700 */
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    max-width: 33.333333%;
+    /* md:w-1/3 */
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    /* gray-300 */
+    border-radius: 0.25rem;
+}
+
+.form-input:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
+    /* blue-500 */
+}
+
+/* Dates section */
+.dates-section {
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #1d4ed8;
+    /* blue-700 */
+}
+
+.add-date-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.date-input {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+}
+
+.date-input:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
+}
+
+.add-date-button {
+    background-color: #2563eb;
+    /* blue-600 */
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.3s;
+}
+
+.add-date-button:hover {
+    background-color: #1d4ed8;
+    /* blue-700 */
+}
+
+/* Dates list */
+.dates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.date-item {
+    border: 2px solid #e5e7eb;
+    /* gray-200 */
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.date-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.date-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+}
+
+.remove-date-button {
+    color: #dc2626;
+    /* red-600 */
+}
+
+.remove-date-button:hover {
+    color: #991b1b;
+    /* red-800 */
+}
+
+/* Time ranges */
+.time-ranges-container {
+    padding-left: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.time-ranges-title {
+    font-weight: 500;
+    color: #374151;
+    /* gray-700 */
+    margin-bottom: 0.5rem;
+}
+
+.time-range-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.time-input {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.25rem;
+}
+
+.time-input:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
+}
+
+.time-separator {
+    color: #6b7280;
+    /* gray-500 */
+}
+
+.remove-time-button {
+    color: #dc2626;
+    /* red-600 */
+    font-size: 0.875rem;
+}
+
+.remove-time-button:hover {
+    color: #991b1b;
+    /* red-800 */
+}
+
+.add-time-button {
+    margin-top: 0.5rem;
+    color: #2563eb;
+    /* blue-600 */
+}
+
+.add-time-button:hover {
+    color: #1d4ed8;
+    /* blue-700 */
+}
+
+.no-dates-message {
+    color: #6b7280;
+    /* gray-500 */
+    font-style: italic;
+}
+
+/* Summary section */
+.summary-container {
+    background-color: #f3f4f6;
+    /* gray-100 */
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.summary-title {
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+}
+
+.total-slots {
+    color: #374151;
+    /* gray-700 */
+}
+
+.slots-count {
+    font-weight: 700;
+}
+
+.slots-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    /* gray-500 */
+    margin-top: 0.25rem;
+}
+
+/* Submit button */
+.submit-button {
+    background-color: #16a34a;
+    /* green-600 */
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    background-color: #15803d;
+    /* green-700 */
+}
+
+/* Submitted data display */
+.submitted-data-container {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: #f3f4f6;
+    /* gray-100 */
+    border-radius: 0.5rem;
+}
+
+.submitted-data-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.json-display {
+    background-color: #1f2937;
+    /* gray-800 */
+    color: #86efac;
+    /* green-300 */
+    padding: 1rem;
+    border-radius: 0.25rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    font-family: monospace;
+}

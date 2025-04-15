@@ -3,6 +3,7 @@ import React from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage.tsx";
 import UserProfile from "./pages/UserProfile.tsx";
+import ScheduleInterviews from "./pages/interviews/ScheduleInterviews.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { useAuth } from "./AuthProvider.tsx";
@@ -48,6 +49,14 @@ export const CreateRouter = () => {
       element: (
         <ProtectedRoute>
           <PageLayout customPage={UserProfile} />
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: "/schedule_interviews",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={ScheduleInterviews} />
         </ProtectedRoute>
       )
     },
