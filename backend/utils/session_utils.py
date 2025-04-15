@@ -76,6 +76,10 @@ def validate_session(encrypted_session_id: str, db: Session):
         "first_name": user.first_name,
         "last_name": user.last_name,
         "roll_number": user.roll_number,
+        "hobbies": user.hobbies,
+        "skills": user.skills,
+        "batch": user.batch,
+        "profile_picture": user.profile_picture
     }
 
     return user_data, session_id

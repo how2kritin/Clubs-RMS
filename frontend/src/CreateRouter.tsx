@@ -4,12 +4,15 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage.tsx";
 import UserProfile from "./pages/UserProfile.tsx";
 import CreateForm from "./pages/CreateForm.tsx";
+import ScheduleInterviews from "./pages/interviews/ScheduleInterviews.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { useAuth } from "./AuthProvider.tsx";
 import Navbar from "./layout/Navbar.tsx";
 import ClubForms from "./pages/ClubForms.tsx";
 import FormView from "./pages/FormView.tsx";
+import RecommendationsPage from "./pages/RecommendationsPage.tsx";
+import ClubsPage from "./pages/ClubsPage.tsx";
 
 // ProtectedRoute component to guard private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -61,7 +64,14 @@ export const CreateRouter = () => {
         </ProtectedRoute>
       )
     },
-
+    {
+      path: "/recommendations", // <-- Add the route definition
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={RecommendationsPage} />
+        </ProtectedRoute>
+      )
+    },
     {
       path: "/profile",
       element: (
@@ -93,6 +103,14 @@ export const CreateRouter = () => {
           <PageLayout customPage={FormView} />
         </ProtectedRoute>
       ),
+    },
+    {
+      path: "/schedule_interviews",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={ScheduleInterviews} />
+        </ProtectedRoute>
+      )
     },
     { path: "*", element: <NotFound /> },
   ];

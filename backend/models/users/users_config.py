@@ -12,7 +12,22 @@ from starlette.responses import RedirectResponse
 
 from models.users.users_model import User
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
+from utils.ldap_utils import get_user_by_email
 
+def get_batch(roll):
+    roll = str(roll)
+    year = roll[:4]
+    rem = roll[4:]
+    batch = year
+    if (rem[0] in ('7', '8')) or rem[:3] == "900":
+        batch = "PhD"+batch
+    elif (rem[:2] in ('10', '11')) or rem[:3] == "909":
+        batch = "UG"+batch
+    elif (rem[:2] in ('20', '21')):
+        batch = "PG"+batch
+    elif (rem[:2] == '12'):
+        batch = "LE"+batch
+    return batch
 
 async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_address: str, cas_client: CASClientV3,
                          db: Session):
@@ -24,13 +39,15 @@ async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_ad
             first_name = attributes['FirstName']
             last_name = attributes['LastName']
             uid = attributes['uid']
-
+            
+            print(get_user_by_email(email))
+            
             # look up user in database
             db_user = db.query(User).filter(User.uid == uid).first()
 
             # create if user doesn't exist
             if not db_user:
-                db_user = User(uid=uid, email=email, first_name=first_name, last_name=last_name, roll_number=roll)
+                db_user = User(uid=uid, email=email, first_name=first_name, last_name=last_name, roll_number=roll, batch=get_batch(roll), profile_picture=0)
                 db.add(db_user)
                 db.commit()
                 db.refresh(db_user)
