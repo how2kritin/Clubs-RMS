@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, status, Depends
 from sqlalchemy.orm import Session
 
-from models.clubs.clubs_model import Club
+from models.clubs.clubs_config import fetch_club_by_id, fetch_info_about_all_clubs
 from schemas.clubs.clubs import ClubResponse
 from utils.database_utils import get_db
 
@@ -11,18 +11,12 @@ router = APIRouter()
 
 
 # Get info about all the clubs.
-@router.get(
-    "/all_clubs", response_model=List[ClubResponse], status_code=status.HTTP_200_OK
-)
+@router.get("/all_clubs", response_model=List[ClubResponse], status_code=status.HTTP_200_OK)
 async def get_all_club_information(db: Session = Depends(get_db)):
-    clubs = db.query(Club).all()
-    return clubs
+    return await fetch_info_about_all_clubs(db)
 
 
 # Get info about a specific club by CID.
 @router.get("/{cid}", response_model=ClubResponse, status_code=status.HTTP_200_OK)
 async def get_club_by_id(cid: str, db: Session = Depends(get_db)):
-    club = db.query(Club).filter(Club.cid == cid).first()
-    if club is None:
-        return status.HTTP_404_NOT_FOUND
-    return club
+    return await fetch_club_by_id(cid, db)
