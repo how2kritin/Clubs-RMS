@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "./FormView.css";
 
 interface Question {
@@ -16,8 +16,8 @@ interface FormDetails {
 }
 
 function FormView() {
-  // Extract the formId from the URL parameters.
   const { formId } = useParams<{ formId: string }>();
+  const navigate = useNavigate();
   const [form, setForm] = useState<FormDetails | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   // State for managing the form's name and deadline in addition to questions.
@@ -35,7 +35,6 @@ function FormView() {
         setEditedName(data.name);
         // Convert the deadline to a datetime-local string format if it's set.
         if (data.deadline) {
-          // Remove seconds and milliseconds for a proper "datetime-local" input.
           const dt = new Date(data.deadline);
           const isoLocal = dt.toISOString().slice(0, 16);
           setEditedDeadline(isoLocal);
@@ -59,7 +58,6 @@ function FormView() {
   };
 
   const handleAddQuestion = () => {
-    // Create a new question with a unique temporary id.
     const newQuestion: Question = {
       id: Date.now(), // temporary id.
       question_text: "",
@@ -73,10 +71,9 @@ function FormView() {
   };
 
   const handleSave = async () => {
-    // Build the payload including name and deadline, along with questions.
     const payload = {
       name: editedName,
-      // If the deadline field is empty, don't send it
+      // If the deadline field is empty, send null.
       deadline: editedDeadline ? new Date(editedDeadline).toISOString() : null,
       questions: editedQuestions.map((q, index) => ({
         question_text: q.question_text,
@@ -87,9 +84,7 @@ function FormView() {
     try {
       const response = await fetch(`/api/recruitment/forms/${formId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -104,6 +99,27 @@ function FormView() {
       }
     } catch (error) {
       console.error("Error updating form:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    // Confirm deletion before sending request.
+    if (!window.confirm("Are you sure you want to delete this form?")) return;
+
+    try {
+      const response = await fetch(`/api/recruitment/forms/${formId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        console.error("Error deleting form");
+      } else {
+        console.log("Form deleted successfully");
+        // Redirect to the landing page.
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Error deleting form:", error);
     }
   };
 
@@ -180,6 +196,9 @@ function FormView() {
             >
               Cancel
             </button>
+            <button onClick={handleDelete} className="delete-btn">
+              Delete Form
+            </button>
           </div>
         </div>
       ) : (
@@ -201,6 +220,9 @@ function FormView() {
             ))}
           </ul>
           <button onClick={() => setIsEditing(true)}>Edit Form</button>
+          <button onClick={handleDelete} className="delete-btn">
+            Delete Form
+          </button>
         </div>
       )}
     </div>
