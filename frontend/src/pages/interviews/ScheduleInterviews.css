@@ -278,3 +278,120 @@
     white-space: pre-wrap;
     font-family: monospace;
 }
+
+/* ScheduleInterviews.css - Dark Mode Additions */
+
+/* Dark mode variables */
+.dark .schedule-container {
+    --background-color: #1f2937;
+    /* gray-800 */
+    --text-color: #d1d5db;
+    /* gray-300 */
+    --input-bg: #374151;
+    /* gray-700 */
+    --input-border: #4b5563;
+    /* gray-600 */
+    --input-text: #f3f4f6;
+    /* gray-100 */
+    --button-bg: #4f46e5;
+    /* indigo-600 */
+    --button-hover-bg: #4338ca;
+    /* indigo-700 */
+    --section-border: #374151;
+    /* gray-700 */
+    --remove-color: #ef4444;
+    /* red-500 */
+    --summary-bg: #374151;
+    /* gray-700 */
+}
+
+/* Apply dark mode styles */
+.dark .schedule-container {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dark .page-title {
+    color: #818cf8;
+    /* indigo-400 */
+}
+
+.dark .form-label {
+    color: var(--text-color);
+}
+
+.dark .form-input,
+.dark .date-input,
+.dark .time-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--input-text);
+}
+
+.dark .form-input:focus,
+.dark .date-input:focus,
+.dark .time-input:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+}
+
+.dark .add-date-button,
+.dark .submit-button {
+    background-color: var(--button-bg);
+    color: white;
+}
+
+.dark .add-date-button:hover,
+.dark .submit-button:hover {
+    background-color: var(--button-hover-bg);
+}
+
+.dark .date-item {
+    border-color: var(--input-border);
+    background-color: var(--input-bg);
+}
+
+.dark .date-title {
+    color: var(--text-color);
+}
+
+.dark .remove-date-button,
+.dark .remove-time-button {
+    color: var(--remove-color);
+}
+
+.dark .remove-date-button:hover,
+.dark .remove-time-button:hover {
+    color: #f87171;
+    /* red-400 */
+}
+
+.dark .add-time-button {
+    color: var(--button-bg);
+}
+
+.dark .add-time-button:hover {
+    color: var(--button-hover-bg);
+}
+
+.dark .summary-container {
+    background-color: var(--summary-bg);
+    border: 1px solid var(--input-border);
+}
+
+.dark .total-slots {
+    color: var(--text-color);
+}
+
+.dark .json-display {
+    background-color: #111827;
+    /* gray-900 */
+    color: #86efac;
+    /* green-300 */
+}
+
+.dark .no-dates-message {
+    color: #9ca3af;
+    /* gray-400 */
+}
