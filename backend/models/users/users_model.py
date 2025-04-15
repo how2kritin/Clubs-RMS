@@ -15,16 +15,3 @@ class User(Base):
     batch = Column(String, nullable=True)
     profile_picture = Column(Integer, nullable=True)  
 
-IMMUTABLE_FIELDS = {"uid", "roll_number", "email", "first_name", "last_name"}
-
-@event.listens_for(User, "load")
-def receive_load(user, _):
-    user._original_values = {field: getattr(user, field) for field in IMMUTABLE_FIELDS}
-
-@event.listens_for(User, "before_update")
-def before_update(mapper, connection, target):
-    for field in IMMUTABLE_FIELDS:
-        original = target._original_values.get(field)
-        current = getattr(target, field)
-        if original != current:
-            raise ValueError(f"Field '{field}' is immutable and cannot be changed.")
