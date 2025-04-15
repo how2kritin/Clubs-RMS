@@ -19,7 +19,9 @@ class Form(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     name = Column(String(255), nullable=False, unique=True)
-    club_id = Column(String(255), ForeignKey("clubs.id", ondelete="CASCADE"), nullable=True)  # NOTE: "cid" in CC database
+    club_id = Column(
+        String(255), ForeignKey("clubs.cid", ondelete="CASCADE"), nullable=True
+    )
     __table_args__ = (UniqueConstraint("club_id", "name", name="uq_club_id_form_name"),)
 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
