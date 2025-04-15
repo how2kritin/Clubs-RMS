@@ -267,13 +267,18 @@ function UserProfile() {
                 onChange={handleInputChange}
               >
                 <option value="">Select Batch</option>
-                <option value="UG1">UG1</option>
-                <option value="UG2">UG2</option>
-                <option value="UG3">UG3</option>
-                <option value="UG4">UG4</option>
-                <option value="UG5">UG5</option>
-                <option value="PG1">PG1</option>
-                <option value="PG2">PG2</option>
+                <option value="UG2024">UG2024</option>
+                <option value="UG2023">UG2023</option>
+                <option value="UG2022">UG2022</option>
+                <option value="UG2021">UG2021</option>
+                <option value="UG2020">UG2020</option>
+                <option value="UG2019">UG2019</option>
+                <option value="UG2018">UG2018</option>
+                <option value="PG2024">PG2024</option>
+                <option value="PG2023">PG2023</option>
+                <option value="PG2022">PG2022</option>
+                <option value="PG2021">PG2021</option>
+                <option value="PG2020">PG2020</option>
                 <option value="PHD">PHD</option>
               </select>
             ) : (
