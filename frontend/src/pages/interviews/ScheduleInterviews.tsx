@@ -152,6 +152,7 @@ const ScheduleInterviews: React.FC = () => {
     console.log('Form submitted:', formattedData);
     fetch('/api/interviews/schedule_interviews', {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },

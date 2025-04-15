@@ -1,5 +1,13 @@
-from fastapi import APIRouter, status, Body, HTTPException
+from fastapi import APIRouter, status, Body, HTTPException, Cookie
 import json
+
+from sqlalchemy.orm import Session
+
+from routers.users_router import get_user_info, get_current_user
+from utils.database_utils import get_db
+from utils.session_utils import SESSION_COOKIE_NAME, validate_session
+from fastapi import Depends
+
 
 from models.calendar.interviews_config import (
     ScheduleInterviewFormResponseStr,
@@ -12,7 +20,11 @@ router = APIRouter()
 
 
 @router.post("/schedule_interviews", status_code=status.HTTP_200_OK)
-async def schedule_interviews(form_data: ScheduleInterviewFormResponseStr = Body(...)):
+async def schedule_interviews(
+    encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
+    db: Session = Depends(get_db),
+    form_data: ScheduleInterviewFormResponseStr = Body(...),
+):
     print("Received interview schedule data:")
     print(json.dumps(form_data.model_dump(), indent=2))
 
@@ -31,6 +43,9 @@ async def schedule_interviews(form_data: ScheduleInterviewFormResponseStr = Body
 
     # calculate interview slots and create slots, panels and a schedule
     interview_slots = calculate_interview_slots(form_data_parsed)
+
+    cur_user = await get_current_user(encrypted_session_id, db)
+    print(cur_user)
 
     # TODO: allocate applicants to slots
 

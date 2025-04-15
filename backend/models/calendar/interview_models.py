@@ -58,7 +58,7 @@ class InterviewPanel(Base):
         backref="interview_panel",
     )
 
-    num_interviewers = Column(Integer, nullable=False)
+    # num_interviewers = Column(Integer, nullable=False)
     # TODO: add interview names?
 
 
