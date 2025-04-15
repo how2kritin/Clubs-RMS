@@ -7,6 +7,7 @@ from sqlalchemy import (
     Text,
     DateTime,
     UniqueConstraint,
+    String,
 )
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
@@ -31,7 +32,7 @@ class Application(Base):
         Integer, ForeignKey("forms.id", ondelete="CASCADE"), nullable=False
     )
     user_id = Column(
-        Integer, ForeignKey("users.uid", ondelete="CASCADE"), nullable=False
+        String, ForeignKey("users.uid", ondelete="CASCADE"), nullable=False
     )
     __table_args__ = (
         UniqueConstraint("user_id", "form_id", name="uq_user_id_form_id"),
