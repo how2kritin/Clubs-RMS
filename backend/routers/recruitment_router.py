@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -6,6 +7,7 @@ from utils.database_utils import get_db
 from models.club_recruitment.club_recruitment_config import (
     create_form,
     delete_form,
+    get_form_applicant_emails,
     update_form,
 )
 
@@ -44,3 +46,12 @@ def delete_existing_form(form_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
     return JSONResponse(content=form_id, status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/forms/{form_id}/applicants/emails", response_model=List[str])
+def get_applicants_emails(form_id: int, db: Session = Depends(get_db)):
+    try:
+        emails = get_form_applicant_emails(db, form_id)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return emails
