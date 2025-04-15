@@ -12,7 +12,6 @@ from starlette.responses import RedirectResponse
 
 from models.users.users_model import User
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
-from utils.ldap_utils import get_user_by_email
 
 def get_batch(roll):
     roll = str(roll)
@@ -39,8 +38,6 @@ async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_ad
             first_name = attributes['FirstName']
             last_name = attributes['LastName']
             uid = attributes['uid']
-            
-            print(get_user_by_email(email))
             
             # look up user in database
             db_user = db.query(User).filter(User.uid == uid).first()
