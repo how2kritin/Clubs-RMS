@@ -12,15 +12,6 @@ def get_user_profile(uid: str, headers: Optional[Dict] = None):
     )
 
 
-def get_user_list_by_role(role: str, headers: Optional[Dict] = None):
-    variables = {"role": role}
-    return query_graphql(
-        user_queries.GET_USER_LIST_BY_ROLE,
-        variables=variables,
-        headers=headers,
-    )
-
-
 # TODO: remove this later
 if __name__ == "__main__":
     import pprint
@@ -29,6 +20,3 @@ if __name__ == "__main__":
 
     print("🔍 Testing get_user_profile()")
     pp.pprint(get_user_profile("samyak.mishra"))
-
-    print("\n🔍 Testing get_user_list_by_role()")
-    pp.pprint(get_user_list_by_role("slc"))

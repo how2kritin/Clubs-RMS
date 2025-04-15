@@ -22,13 +22,3 @@ GET_USER_PROFILE = """
     }
   }
 """
-
-
-GET_USER_LIST_BY_ROLE = """
-  query GetUserListByRole($role: String!) {
-    usersByRole(role: $role) {
-      uid
-      role
-    }
-  }
-"""

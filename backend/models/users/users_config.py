@@ -34,11 +34,11 @@ async def user_login_cas(response: Response, ticket: str, user_agent: str, ip_ad
 
             # create session token and set cookie
             encrypted_session_id = create_session(user_uid=uid, user_agent=user_agent, ip_address=ip_address, db=db)
-            response.set_cookie(key=SESSION_COOKIE_NAME, value=encrypted_session_id, httponly=True, secure=True,
-                samesite="lax"  # protection against CSRF
-            )
-
-    return {"message": "Logged in successfully"}
+            # response.set_cookie(key=SESSION_COOKIE_NAME, value=encrypted_session_id, httponly=True, secure=True,
+            #     samesite="lax"  # protection against CSRF
+            # )
+            
+    return encrypted_session_id
 
 
 # log user out by invalidating their session
