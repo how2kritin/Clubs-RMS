@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Check, X, Plus } from 'lucide-react'; // Import icons
+import { Edit, Check, X, Plus, AlertCircle } from 'lucide-react'; // Import icons
 
 // Import profile picture assets
 import avatar1 from '../assets/bear.png';
@@ -18,82 +18,149 @@ interface UserProfileData {
   email: string;
   hobbies: string;
   skills: string[];
-  batch: 'UG1' | 'UG2' | 'UG3' | 'UG4' | 'UG5' | 'PG1' | 'PG2' | 'PHD' | '';
+  batch: string; // Keep as string, validation happens backend if needed
   profilePicture: number; // Stores index into profilePictures (0 to 4)
 }
+
+// Interface for the data sent to the backend API
+interface UserProfileUpdatePayload {
+    hobbies: string;
+    skills: string[];
+    profile_picture: number; // Use snake_case for backend consistency
+}
+
 
 function UserProfile() {
   // --- State ---
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Added loading state for initial fetch
+  const [isSaving, setIsSaving] = useState(false); // Added saving state for update
+  const [error, setError] = useState<string | null>(null); // Added error state
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
-  // State to hold changes during editing
   const [editedProfile, setEditedProfile] = useState<UserProfileData | null>(null);
-  // State for the new skill input
   const [newSkill, setNewSkill] = useState('');
 
   // --- Effects ---
   // Fetch user info on component mount
   useEffect(() => {
     async function fetchUserProfile() {
+      setIsLoading(true);
+      setError(null);
       try {
-        const response = await fetch('/api/user/user_info');
+        const response = await fetch('/api/user/user_info', {credentials: 'include'}); // Ensure cookie is sent
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+           if (response.status === 401) {
+               // Handle unauthorized access, maybe redirect to login
+               setError("Unauthorized. Please log in.");
+               // Optionally redirect: window.location.href = '/login';
+           } else {
+               throw new Error(`Network response was not ok (${response.status})`);
+           }
+        } else {
+            const data = await response.json();
+            // Map the API response
+            const sanitizedData: UserProfileData = {
+              name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || 'N/A',
+              rollNumber: data.roll_number || 'N/A',
+              email: data.email || 'N/A',
+              hobbies: data.hobbies || '',
+              skills: data.skills || [],
+              batch: data.batch || '',
+              // Ensure profile_picture is a valid index, default to 0 if invalid/missing
+              profilePicture: (typeof data.profile_picture === 'number' && data.profile_picture >= 0 && data.profile_picture < profilePictures.length)
+                                ? data.profile_picture
+                                : 0,
+            };
+            setUserProfile(sanitizedData);
+            setEditedProfile(sanitizedData); // Initialize edited state
         }
-        const data = await response.json();
-        // Map the API response (with keys like first_name, last_name, roll_number, etc.)
-        const sanitizedData: UserProfileData = {
-          name: `${data.first_name || 'No First Name'} ${data.last_name || 'No Last Name'}`,
-          rollNumber: data.roll_number || 'N/A',
-          email: data.email || 'N/A',
-          hobbies: data.hobbies || '',
-          skills: data.skills || [],
-          batch: data.batch || '',
-          profilePicture: typeof data.profile_picture === 'number' ? data.profile_picture : 0,
-        };
-        setUserProfile(sanitizedData);
-        setEditedProfile(sanitizedData);
-      } catch (error) {
-        console.error('Error fetching user info:', error);
+      } catch (err) {
+        console.error('Error fetching user info:', err);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred while fetching profile.');
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchUserProfile();
   }, []);
 
-  // Reset editedProfile whenever userProfile changes
+  // Reset editedProfile if userProfile changes externally (less likely here, but good practice)
   useEffect(() => {
-    if (userProfile) {
+    if (userProfile && !isEditing) { // Only reset if not currently editing
       setEditedProfile(userProfile);
     }
-  }, [userProfile]);
+  }, [userProfile, isEditing]);
 
   // --- Handlers ---
-  const handleEditToggle = () => {
+  const handleEditToggle = async () => {
+    setError(null); // Clear previous errors
     if (isEditing) {
       // "Done" button clicked - save changes via API call
-      // TODO: Add API call here to save changes to the backend.
-      console.log('Saving profile:', editedProfile);
-      if (editedProfile) {
-        setUserProfile(editedProfile); // Update the main profile state
+      if (!editedProfile) return; // Should not happen if logic is correct
+
+      setIsSaving(true); // Indicate saving process start
+
+      // Prepare only the fields that can be updated
+      const payload: UserProfileUpdatePayload = {
+        hobbies: editedProfile.hobbies,
+        skills: editedProfile.skills,
+        profile_picture: editedProfile.profilePicture // Map frontend state name to backend name
+      };
+
+      console.log('Saving profile with payload:', payload);
+
+      try {
+        const response = await fetch('/api/user/update_profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Important to send session cookie
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          // Try to get error details from response body
+          let errorDetail = `Failed to update profile (${response.status})`;
+          try {
+              const errorData = await response.json();
+              errorDetail = errorData.detail || errorDetail;
+          } catch (jsonError) {
+              // Ignore if response is not JSON
+          }
+          throw new Error(errorDetail);
+        }
+
+        // Success! Update the main profile state with the edited data
+        setUserProfile(editedProfile);
+        setIsEditing(false); // Exit edit mode
+
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred during save.');
+        // Keep isEditing true so user can see the error and potentially retry or fix input
+      } finally {
+        setIsSaving(false); // Indicate saving process end
       }
-      setIsEditing(false);
+
     } else {
       // "Edit Profile" button clicked - start editing
       if (userProfile) {
-        setEditedProfile(userProfile); // Ensure edit state starts fresh
+        setEditedProfile({...userProfile}); // Ensure edit state starts fresh with a copy
+        setIsEditing(true);
       }
-      setIsEditing(true);
     }
   };
 
+  // Only allow changing hobbies (textarea)
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLTextAreaElement> // Only need textarea now
   ) => {
     const { name, value } = e.target;
-    if (editedProfile) {
+    if (editedProfile && name === 'hobbies') { // Only update hobbies
       setEditedProfile((prev) => prev && ({
         ...prev,
-        [name]: value,
+        hobbies: value,
       }));
     }
   };
@@ -137,6 +204,7 @@ function UserProfile() {
               onClick={() => handleRemoveSkill(skill)}
               className="remove-skill-btn"
               aria-label={`Remove skill ${skill}`}
+              disabled={isSaving} // Disable while saving
             >
               <X size={14} />
             </button>
@@ -152,8 +220,14 @@ function UserProfile() {
             placeholder="Add a skill"
             className="skill-input"
             onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
+            disabled={isSaving} // Disable while saving
           />
-          <button onClick={handleAddSkill} className="add-skill-btn" aria-label="Add skill">
+          <button
+             onClick={handleAddSkill}
+             className="add-skill-btn"
+             aria-label="Add skill"
+             disabled={isSaving} // Disable while saving
+          >
             <Plus size={18} />
           </button>
         </div>
@@ -161,18 +235,36 @@ function UserProfile() {
     </div>
   );
 
-  if (!userProfile || !editedProfile) {
-    return <div>Loading...</div>;
+  // --- Loading and Error States ---
+  if (isLoading) {
+    return <div className="user-profile-page"><div className="loading-message">Loading profile...</div></div>;
   }
 
-  const currentProfile = isEditing ? editedProfile : userProfile;
+  // Handle case where initial fetch failed but wasn't just unauthorized
+  if (!userProfile && error && !isLoading) {
+      return <div className="user-profile-page"><div className="error-message">{error}</div></div>;
+  }
+
+  // Handle case where fetch succeeded but data is somehow null (shouldn't happen with current logic)
+  if (!userProfile || !editedProfile) {
+      return <div className="user-profile-page"><div className="error-message">Could not load profile data.</div></div>;
+  }
+
+  // Use editedProfile for display/inputs when editing, otherwise userProfile
+  const currentDisplayProfile = isEditing ? editedProfile : userProfile;
 
   return (
     <div className="user-profile-page">
       <div className="profile-header">
         <h1 className="profile-title">User Profile</h1>
-        <button onClick={handleEditToggle} className="edit-button">
-          {isEditing ? (
+        <button
+            onClick={handleEditToggle}
+            className={`edit-button ${isSaving ? 'saving' : ''}`}
+            disabled={isSaving} // Disable button while saving
+        >
+          {isSaving ? (
+            <>Saving...</>
+          ) : isEditing ? (
             <>
               <Check size={18} /> Done
             </>
@@ -184,26 +276,36 @@ function UserProfile() {
         </button>
       </div>
 
+       {/* Display Save Error */}
+       {error && isEditing && (
+            <div className="error-message-banner">
+                <AlertCircle size={18} />
+                <span>{error}</span>
+            </div>
+        )}
+
+
       <div className="profile-content">
         {/* --- Profile Picture Section --- */}
         <div className="profile-picture-section">
           <h2>Profile Picture</h2>
           <img
-            src={profilePictures[currentProfile.profilePicture]}
+            // Use index from currentDisplayProfile to get the image source
+            src={profilePictures[currentDisplayProfile.profilePicture]}
             alt="User profile"
             className="profile-picture-main"
           />
           {isEditing && (
             <div className="profile-picture-options">
-              {profilePictures.map((_, index) => (
+              {profilePictures.map((picSrc, index) => (
                 <img
                   key={index}
-                  src={profilePictures[index]}
+                  src={picSrc} // Use the imported source directly
                   alt={`Profile option ${index + 1}`}
                   className={`profile-picture-thumb ${
-                    currentProfile.profilePicture === index ? 'selected' : ''
+                    editedProfile.profilePicture === index ? 'selected' : '' // Always compare with editedProfile in edit mode
                   }`}
-                  onClick={() => handleProfilePicSelect(index)}
+                  onClick={() => handleProfilePicSelect(index)} // Pass index
                 />
               ))}
             </div>
@@ -212,89 +314,38 @@ function UserProfile() {
 
         {/* --- Profile Details Section --- */}
         <div className="profile-details-section">
+          {/* Immutable Fields - Always display as text */}
           <div className="profile-field">
-            <label htmlFor="name">Name</label>
-            {isEditing ? (
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={editedProfile.name}
-                onChange={handleInputChange}
-              />
-            ) : (
-              <p>{userProfile.name || 'Not specified'}</p>
-            )}
+            <label>Name</label>
+            <p>{userProfile.name || 'Not specified'}</p>
           </div>
 
           <div className="profile-field">
-            <label htmlFor="rollNumber">Roll Number</label>
-            {isEditing ? (
-              <input
-                type="text"
-                id="rollNumber"
-                name="rollNumber"
-                value={editedProfile.rollNumber}
-                onChange={handleInputChange}
-              />
-            ) : (
-              <p>{userProfile.rollNumber || 'Not specified'}</p>
-            )}
+            <label>Roll Number</label>
+            <p>{userProfile.rollNumber || 'Not specified'}</p>
           </div>
 
           <div className="profile-field">
-            <label htmlFor="email">Email</label>
-            {isEditing ? (
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={editedProfile.email}
-                onChange={handleInputChange}
-              />
-            ) : (
-              <p>{userProfile.email || 'Not specified'}</p>
-            )}
+            <label>Email</label>
+            <p>{userProfile.email || 'Not specified'}</p>
           </div>
 
           <div className="profile-field">
-            <label htmlFor="batch">Batch</label>
-            {isEditing ? (
-              <select
-                id="batch"
-                name="batch"
-                value={editedProfile.batch}
-                onChange={handleInputChange}
-              >
-                <option value="">Select Batch</option>
-                <option value="UG2024">UG2024</option>
-                <option value="UG2023">UG2023</option>
-                <option value="UG2022">UG2022</option>
-                <option value="UG2021">UG2021</option>
-                <option value="UG2020">UG2020</option>
-                <option value="UG2019">UG2019</option>
-                <option value="UG2018">UG2018</option>
-                <option value="PG2024">PG2024</option>
-                <option value="PG2023">PG2023</option>
-                <option value="PG2022">PG2022</option>
-                <option value="PG2021">PG2021</option>
-                <option value="PG2020">PG2020</option>
-                <option value="PHD">PHD</option>
-              </select>
-            ) : (
-              <p>{userProfile.batch || 'Not specified'}</p>
-            )}
+            <label>Batch</label>
+            <p>{userProfile.batch || 'Not specified'}</p>
           </div>
 
+          {/* Mutable Fields */}
           <div className="profile-field">
             <label htmlFor="hobbies">Hobbies</label>
             {isEditing ? (
               <textarea
                 id="hobbies"
-                name="hobbies"
+                name="hobbies" // Keep name for potential future generic handlers
                 value={editedProfile.hobbies}
-                onChange={handleInputChange}
+                onChange={handleInputChange} // Use the restricted handler
                 rows={3}
+                disabled={isSaving} // Disable while saving
               />
             ) : (
               <p className="hobbies-text">{userProfile.hobbies || 'No hobbies listed.'}</p>
@@ -303,7 +354,8 @@ function UserProfile() {
 
           <div className="profile-field">
             <label>Skills</label>
-            {renderSkills(currentProfile.skills, isEditing)}
+            {/* Pass editedProfile.skills when editing, userProfile.skills otherwise */}
+            {renderSkills(currentDisplayProfile.skills, isEditing)}
           </div>
         </div>
       </div>
