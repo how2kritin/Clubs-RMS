@@ -46,7 +46,12 @@ const ClubCard: React.FC<ClubCardProps> = ({ logo, name, tagline, cid }) => {
                     </p>
                 )} */}
         {/* Add a link or button here if cards should be clickable */}
-        <Link to={`/club/${cid}`}>View Details</Link>
+        <Link
+          to={`/club/${cid}`}
+          className="text-gray-900 dark:text-white hover:underline"
+        >
+          View Details
+        </Link>
       </div>
     </div>
   );
