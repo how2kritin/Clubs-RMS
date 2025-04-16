@@ -1,19 +1,37 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
-from models.club_recruitment.club_recruitment_config import (create_form, delete_form, get_form_applicant_emails,
-                                                             get_form_by_id, get_forms_by_club, update_form, )
+from models.club_recruitment.club_recruitment_config import (
+    create_form,
+    delete_form,
+    get_form_applicant_emails,
+    get_form_by_id,
+    get_forms_by_club,
+    update_form,
+)
+from models.users.users_config import is_admin_of_club
 from schemas.form.form import FormCreate, FormOut, FormUpdate
 from utils.database_utils import get_db
+from utils.session_utils import SESSION_COOKIE_NAME, get_current_user
 
 router = APIRouter()
 
 
 @router.post("/forms", response_model=FormOut, status_code=status.HTTP_201_CREATED)
-async def create_new_form(form_data: FormCreate, db: Session = Depends(get_db)):
+async def create_new_form(
+    form_data: FormCreate,
+    encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
+    db: Session = Depends(get_db),
+):
     try:
+        user = await get_current_user(encrypted_session_id, db)
+        if not is_admin_of_club(user["uid"], form_data.club_id, db):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to create a form for this club.",
+            )
         new_form = await create_form(db, form_data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -39,8 +57,24 @@ async def get_form(form_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/forms/{form_id}", response_model=FormOut)
-async def update_existing_form(form_id: int, form_data: FormUpdate, db: Session = Depends(get_db)):
+async def update_existing_form(
+    form_id: int,
+    form_data: FormUpdate,
+    encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
+    db: Session = Depends(get_db),
+):
     try:
+        user = await get_current_user(encrypted_session_id, db)
+        form = await get_form_by_id(db, form_id)
+        if not form:
+            raise HTTPException(status_code=404, detail="Form not found")
+
+        if not is_admin_of_club(user["uid"], form.club_id, db):  # type: ignore
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to create a form for this club.",
+            )
+
         updated_form = await update_form(db, form_id, form_data)
     except HTTPException as e:
         raise e
@@ -50,8 +84,23 @@ async def update_existing_form(form_id: int, form_data: FormUpdate, db: Session 
 
 
 @router.delete("/forms/{form_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_existing_form(form_id: int, db: Session = Depends(get_db)):
+async def delete_existing_form(
+    form_id: int,
+    encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
+    db: Session = Depends(get_db),
+):
     try:
+        user = await get_current_user(encrypted_session_id, db)
+        form = await get_form_by_id(db, form_id)
+        if not form:
+            raise HTTPException(status_code=404, detail="Form not found")
+
+        if not is_admin_of_club(user["uid"], form.club_id, db):  # type: ignore
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to create a form for this club.",
+            )
+
         await delete_form(db, form_id)
     except HTTPException as e:
         raise e

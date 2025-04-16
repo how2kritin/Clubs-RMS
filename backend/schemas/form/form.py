@@ -10,7 +10,7 @@ class QuestionCreate(BaseModel):
 
 class FormCreate(BaseModel):
     name: str
-    club_id: Optional[str] = None
+    club_id: str
     deadline: Optional[datetime] = None
     questions: Optional[List[QuestionCreate]] = []
 

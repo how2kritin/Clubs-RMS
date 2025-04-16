@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
 from models.users.users_model import User
+from models.clubs.clubs_model import Club
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
 
 
@@ -45,7 +46,7 @@ async def user_login_cas(
             try:
                 roll = attributes["RollNo"]
             except KeyError:
-                roll = attributes['uid']
+                roll = attributes["uid"]
             email = attributes["E-Mail"]
             first_name = attributes["FirstName"]
             last_name = attributes["LastName"]
@@ -97,3 +98,26 @@ async def get_clubs_by_user(user_id: str, db: Session):
         raise HTTPException(status_code=404, detail="User not found")
 
     return user.clubs
+
+
+def is_member_of_club(user_id: str, club_id: str, db: Session) -> bool:
+    club = db.query(Club).filter(Club.cid == club_id).first()
+    if not club:
+        raise HTTPException(status_code=404, detail="Club not found")
+
+    return any(member.uid == user_id for member in club.members)
+
+
+def is_admin_of_club(user_id: str, club_id: str, db: Session) -> bool:
+    """
+    The club admin is defined as the user whose email matches the club's email address.
+    """
+    club = db.query(Club).filter(Club.cid == club_id).first()
+    if not club:
+        raise HTTPException(status_code=404, detail="Club not found")
+
+    user = db.query(User).filter(User.uid == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user.email == club.email  # type: ignore
