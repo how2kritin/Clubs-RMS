@@ -1,0 +1,44 @@
+.application-detail-container {
+  padding: 20px;
+}
+
+.application-detail-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.application-detail-header {
+  margin-bottom: 20px;
+}
+
+.application-info {
+  margin-bottom: 20px;
+}
+
+.application-responses {
+  margin-bottom: 20px;
+}
+
+.response-card {
+  margin-bottom: 16px;
+}
+
+.question {
+  margin-bottom: 8px;
+}
+
+.answer {
+  padding-left: 16px;
+}
+
+.application-actions {
+  margin-top: 16px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  font-size: 16px;
+  color: #666;
+}

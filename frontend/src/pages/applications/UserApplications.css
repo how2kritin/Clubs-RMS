@@ -1,0 +1,16 @@
+.user-applications-container {
+  padding: 20px;
+}
+
+.user-applications-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  font-size: 16px;
+  color: #666;
+}

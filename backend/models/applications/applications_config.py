@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from fastapi import HTTPException, Depends
 from sqlalchemy import and_
@@ -6,15 +6,15 @@ from sqlalchemy.orm import Session
 
 from models.applications.applications_model import Application, ApplicationStatus
 from models.applications.applications_model import Response
-from models.club_recruitment.club_recruitment_model import Form
-from models.club_recruitment.club_recruitment_model import Question
-from models.clubs.clubs_model import club_members
-from schemas.applications.applications import ApplicationDetailOut, ResponseOut, ApplicationStatusUpdate
+from models.club_recruitment.club_recruitment_model import Form, Question
+from models.clubs.clubs_model import club_members, Club
+from models.users.users_model import User
+from schemas.applications.applications import ApplicationStatusUpdate
 from utils.database_utils import get_db
 from utils.session_utils import get_current_user
 
 
-async def get_application_autofill_info(user_data = Depends(get_current_user)):
+async def get_application_autofill_info(user_data=Depends(get_current_user)):
     try:
         return {"user_id": user_data["uid"], "first_name": user_data["first_name"], "last_name": user_data["last_name"],
                 "email": user_data["email"], "roll_number": user_data["roll_number"], "hobbies": user_data["hobbies"],
@@ -25,7 +25,8 @@ async def get_application_autofill_info(user_data = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail=f"Failed to retrieve user information: {str(e)}")
 
 
-async def process_submitted_application(form_data: dict, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+async def process_submitted_application(form_data: dict, db: Session = Depends(get_db),
+                                        user_data=Depends(get_current_user)):
     try:
         user_id = user_data["uid"]
 
@@ -70,7 +71,8 @@ async def process_submitted_application(form_data: dict, db: Session = Depends(g
 
 
 # check if user has access to application (must've either submitted the application, or belong to the club)
-async def _check_application_access(application_id: int, db: Session, user_data = Depends(get_current_user)) -> Dict[str, Any]:
+async def _check_application_access(application_id: int, db: Session, user_data=Depends(get_current_user)) -> Dict[
+    str, Any]:
     user_id = user_data["uid"]
 
     # fetch application
@@ -98,39 +100,43 @@ async def _check_application_access(application_id: int, db: Session, user_data 
 
 
 # get all details about the application
-async def get_application_details(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+async def get_application_details(application_id: int, db: Session = Depends(get_db),
+                                  user_data=Depends(get_current_user)):
     try:
-        result = await _check_application_access(application_id, db, user_data)
-        application = result["application"]
+        app_data = db.query(Application, Form.name.label("form_title"), Form.club_id.label("club_id"),
+                            Club.name.label("club_name"), User.uid.label("user_name"),
+                            User.email.label("user_email")).join(Form, Application.form_id == Form.id).join(Club,
+                                                                                                            Form.club_id == Club.cid).join(
+            User, Application.user_id == User.uid).filter(Application.id == application_id).first()
 
-        form = db.query(Form).filter(Form.id == application.form_id).first()
+        if not app_data:
+            raise HTTPException(status_code=404, detail=f"Application with ID {application_id} not found")
 
-        if not form:
-            raise HTTPException(status_code=404, detail="Form associated with this application not found")
+        app, form_title, club_id, club_name, user_name, user_email = app_data
 
-        responses_data = []
-        responses = db.query(Response).filter(Response.application_id == application.id).all()
+        # get the application responses
+        responses = db.query(Response).filter(Response.application_id == application_id).all()
 
+        # format the responses
+        formatted_responses = []
         for response in responses:
             question = db.query(Question).filter(Question.id == response.question_id).first()
 
-            response_out = ResponseOut(id=response.id, question_id=response.question_id,
-                                       answer_text=response.answer_text,
-                                       question_text=question.question_text if question else None,
-                                       question_order=question.question_order if question else None)
-            responses_data.append(response_out)
+            response_out = {"question_id": response.question_id, "answer_text": response.answer_text,
+                "question_text": question.question_text if question else None,
+                "question_order": question.question_order if question else None}
+            formatted_responses.append(response_out)
 
-        responses_data.sort(key=lambda x: (x.question_order or float('inf')))
+        current_user_uid = user_data.get('uid')
+        is_club_member = check_club_membership(current_user_uid, club_id, db)
 
-        application_details = ApplicationDetailOut(id=application.id, form_id=application.form_id,
-                                                   user_id=application.user_id, form_name=form.name,
-                                                   club_id=form.club_id, submitted_at=application.submitted_at,
-                                                   status=application.status, responses=responses_data,
-                                                   endorser_ids=application.endorser_ids if application.endorser_ids else [],
-                                                   endorser_count=len(
-                                                       application.endorser_ids) if application.endorser_ids else 0)
+        result = {"id": app.id, "user_id": app.user_id, "user_name": user_name, "user_email": user_email,
+                  "status": app.status.name, "endorser_ids": app.endorser_ids,
+                  "submitted_at": app.submitted_at.isoformat(), "form_id": app.form_id, "form_title": form_title,
+                  "club_id": club_id, "club_name": club_name, "responses": formatted_responses,
+                  "is_club_member": is_club_member}
 
-        return application_details
+        return result
 
     except HTTPException as e:
         raise e
@@ -138,7 +144,8 @@ async def get_application_details(application_id: int, db: Session = Depends(get
         raise HTTPException(status_code=500, detail=f"Failed to fetch application details: {str(e)}")
 
 
-async def get_application_status(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+async def get_application_status(application_id: int, db: Session = Depends(get_db),
+                                 user_data=Depends(get_current_user)):
     try:
         result = await _check_application_access(application_id, db, user_data)
         application = result["application"]
@@ -166,7 +173,7 @@ async def update_application_status(db: Session, application_id: int, status_upd
 
 
 # if the current user is a member of this club, they can endorse the application.
-async def endorse_application(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+async def endorse_application(application_id: int, db: Session = Depends(get_db), user_data=Depends(get_current_user)):
     try:
         user_id = user_data["uid"]
 
@@ -215,7 +222,7 @@ async def endorse_application(application_id: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail=f"Failed to endorse application: {str(e)}")
 
 
-async def withdraw_endorsement(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+async def withdraw_endorsement(application_id: int, db: Session = Depends(get_db), user_data=Depends(get_current_user)):
     try:
         result = await _check_application_access(application_id, db, user_data)
         application = result["application"]
@@ -245,7 +252,7 @@ async def withdraw_endorsement(application_id: int, db: Session = Depends(get_db
 
 
 # only the user that has submitted this application is allowed to delete it
-async def delete_application(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+async def delete_application(application_id: int, db: Session = Depends(get_db), user_data=Depends(get_current_user)):
     try:
         user_id = user_data["uid"]
 
@@ -269,3 +276,66 @@ async def delete_application(application_id: int, db: Session = Depends(get_db),
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to delete application: {str(e)}")
+
+
+async def get_form_applications(form_id: int, db: Session, user_data=Depends(get_current_user)) -> List:
+    user_uid = user_data.get("uid")
+    if not user_uid:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    # get the form to check club membership
+    form = db.query(Form).filter(Form.id == form_id).first()
+    if not form:
+        raise HTTPException(status_code=404, detail=f"Form with ID {form_id} not found")
+
+    # check if user is a club member
+    club_membership = db.query(club_members).filter(
+        and_(club_members.c.club_id == form.club_id, club_members.c.user_id == user_uid)).first()
+
+    if not club_membership:
+        raise HTTPException(status_code=403, detail="Only club members can view all applications for a form")
+
+    # get all applications for this form
+    applications = db.query(Application).filter(Application.form_id == form_id).all()
+
+    # get user information for each application
+    result = []
+    for app in applications:
+        user = db.query(User).filter(User.uid == app.user_id).first()
+        user_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
+
+        app_dict = {"id": app.id, "user_id": app.user_id, "user_name": user_name, "status": app.status.name,
+            "endorser_ids": app.endorser_ids if app.endorser_ids else [], "submitted_at": app.submitted_at.isoformat()}
+        result.append(app_dict)
+
+    return result
+
+
+async def get_user_applications(db: Session, user_data=Depends(get_current_user)) -> List:
+    user_uid = user_data.get("uid")
+    if not user_uid:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+
+    # query applications with form and club information
+    applications = db.query(Application).filter(Application.user_id == user_uid).all()
+
+    result = []
+    for app in applications:
+        # get form information
+        form = db.query(Form).filter(Form.id == app.form_id).first()
+        if not form:
+            continue
+
+        # get club information
+        club = db.query(Club).filter(Club.cid == form.club_id).first()
+        if not club:
+            continue
+
+        app_dict = {"id": app.id, "form_id": app.form_id, "form_name": form.name, "club_id": form.club_id,
+            "club_name": club.name if club else "Unknown", "status": app.status.name,
+            "endorser_ids": app.endorser_ids if app.endorser_ids else [],
+            "endorser_count": len(app.endorser_ids) if app.endorser_ids else 0,
+            "submitted_at": app.submitted_at.isoformat()}
+        result.append(app_dict)
+
+    return result
