@@ -10,10 +10,15 @@ interface Application {
   id: number;
   user_id: string;
   user_name: string;
+  user_email: string;
+  form_id: number;
+  form_name: string;
   status: string;
   endorser_ids: string[];
+  endorser_count: number;
   submitted_at: string;
 }
+
 
 const FormApplicationsOverview: React.FC = () => {
   const { formId } = useParams<{ formId: string }>();
@@ -64,6 +69,11 @@ const FormApplicationsOverview: React.FC = () => {
       key: 'user_name',
     },
     {
+      title: 'Email',
+      dataIndex: 'user_email',
+      key: 'user_email',
+    },
+    {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
@@ -78,9 +88,8 @@ const FormApplicationsOverview: React.FC = () => {
     },
     {
       title: 'Endorsements',
-      dataIndex: 'endorser_ids',
-      key: 'endorser_ids',
-      render: (endorser_ids: string[]) => endorser_ids?.length || 0,
+      dataIndex: 'endorser_count',
+      key: 'endorser_count',
     },
     {
       title: 'Submitted At',

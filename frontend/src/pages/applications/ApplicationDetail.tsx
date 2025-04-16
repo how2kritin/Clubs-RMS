@@ -24,7 +24,11 @@ interface ApplicationDetail {
     responses: Response[];
     endorser_ids: string[];
     endorser_count: number;
+    user_name: string;
+    user_email: string;
+    is_club_member: boolean;
 }
+
 
 const ApplicationDetail: React.FC = () => {
     const {formId, applicationId} = useParams<{ formId: string, applicationId: string }>();
@@ -48,15 +52,7 @@ const ApplicationDetail: React.FC = () => {
 
                 const data = await response.json();
                 setApplication(data);
-
-                // Check if the user is a club member by fetching user club info
-                const userClubResponse = await fetch('/api/user/user_club_info');
-                if (userClubResponse.ok) {
-                    const userClubs = await userClubResponse.json();
-                    // Check if the user is a member of this club
-                    const isMember = userClubs.some((club: any) => club.cid === data.club_id);
-                    setIsClubMember(isMember);
-                }
+                setIsClubMember(data?.is_club_member);
 
                 setLoading(false);
             } catch (err) {
@@ -136,76 +132,77 @@ const ApplicationDetail: React.FC = () => {
     const statusColor = application.status === 'ongoing' ? 'gold' : application.status === 'accepted' ? 'green' : application.status === 'rejected' ? 'red' : 'blue';
 
     return (<div className="application-detail-container">
-            <Card className="application-detail-card">
-                <div className="application-detail-header">
+        <Card className="application-detail-card">
+            <div className="application-detail-header">
+                <Button
+                    icon={<RollbackOutlined/>}
+                    onClick={() => navigate(`/forms/${formId}/applications`)}
+                >
+                    Back to Applications
+                </Button>
+            </div>
+
+            <Title level={2}>Application Details</Title>
+            <Descriptions bordered className="application-info">
+                <Descriptions.Item label="Form" span={3}>{application.form_name}</Descriptions.Item>
+                <Descriptions.Item label="Applicant ID" span={3}>{application.user_id}</Descriptions.Item>
+                <Descriptions.Item label="Email" span={1}>{application.user_email}</Descriptions.Item>
+                <Descriptions.Item label="Status">
+                    <Tag color={statusColor}>{application.status.toUpperCase()}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Endorsements">{application.endorser_count}</Descriptions.Item>
+                <Descriptions.Item label="Submitted Date">
+                    {new Date(application.submitted_at).toLocaleString()}
+                </Descriptions.Item>
+            </Descriptions>
+
+            <Divider orientation="left">Responses</Divider>
+
+            <div className="application-responses">
+                {application.responses.map((response, index) => (<Card key={index} className="response-card">
+                    <div className="question">
+                        <Text strong>Q: {response.question_text}</Text>
+                    </div>
+                    <div className="answer">
+                        <Text>A: {response.answer_text}</Text>
+                    </div>
+                </Card>))}
+            </div>
+
+            {/* Club member actions */}
+            {isClubMember && (<>
+                <Divider orientation="left">Actions</Divider>
+                <Space className="application-actions">
                     <Button
-                        icon={<RollbackOutlined/>}
-                        onClick={() => navigate(`/forms/${formId}/applications`)}
+                        type="primary"
+                        icon={<CheckOutlined/>}
+                        onClick={() => handleStatusUpdate('accepted')}
+                        loading={actionLoading}
+                        disabled={application.status === 'accepted'}
                     >
-                        Back to Applications
+                        Accept
                     </Button>
-                </div>
-
-                <Title level={2}>Application Details</Title>
-                <Descriptions bordered className="application-info">
-                    <Descriptions.Item label="Form" span={3}>{application.form_name}</Descriptions.Item>
-                    <Descriptions.Item label="Applicant ID" span={3}>{application.user_id}</Descriptions.Item>
-                    <Descriptions.Item label="Status">
-                        <Tag color={statusColor}>{application.status.toUpperCase()}</Tag>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Endorsements">{application.endorser_count}</Descriptions.Item>
-                    <Descriptions.Item label="Submitted Date">
-                        {new Date(application.submitted_at).toLocaleString()}
-                    </Descriptions.Item>
-                </Descriptions>
-
-                <Divider orientation="left">Responses</Divider>
-
-                <div className="application-responses">
-                    {application.responses.map((response, index) => (<Card key={index} className="response-card">
-                            <div className="question">
-                                <Text strong>Q: {response.question_text}</Text>
-                            </div>
-                            <div className="answer">
-                                <Text>A: {response.answer_text}</Text>
-                            </div>
-                        </Card>))}
-                </div>
-
-                {/* Club member actions */}
-                {isClubMember && (<>
-                        <Divider orientation="left">Actions</Divider>
-                        <Space className="application-actions">
-                            <Button
-                                type="primary"
-                                icon={<CheckOutlined/>}
-                                onClick={() => handleStatusUpdate('accepted')}
-                                loading={actionLoading}
-                                disabled={application.status === 'accepted'}
-                            >
-                                Accept
-                            </Button>
-                            <Button
-                                danger
-                                icon={<CloseOutlined/>}
-                                onClick={() => handleStatusUpdate('rejected')}
-                                loading={actionLoading}
-                                disabled={application.status === 'rejected'}
-                            >
-                                Reject
-                            </Button>
-                            <Button
-                                icon={<LikeOutlined/>}
-                                onClick={handleEndorse}
-                                loading={actionLoading}
-                                disabled={application.endorser_ids.includes(application.user_id)}
-                            >
-                                Endorse
-                            </Button>
-                        </Space>
-                    </>)}
-            </Card>
-        </div>);
+                    <Button
+                        danger
+                        icon={<CloseOutlined/>}
+                        onClick={() => handleStatusUpdate('rejected')}
+                        loading={actionLoading}
+                        disabled={application.status === 'rejected'}
+                    >
+                        Reject
+                    </Button>
+                    <Button
+                        icon={<LikeOutlined/>}
+                        onClick={handleEndorse}
+                        loading={actionLoading}
+                        disabled={application.endorser_ids.includes(application.user_id)}
+                    >
+                        Endorse
+                    </Button>
+                </Space>
+            </>)}
+        </Card>
+    </div>);
 };
 
 export default ApplicationDetail;

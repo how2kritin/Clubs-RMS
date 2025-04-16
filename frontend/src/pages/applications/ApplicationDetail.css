@@ -1,13 +1,20 @@
+/* ApplicationDetail.css */
+
 .application-detail-container {
   padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .application-detail-card {
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .application-detail-header {
   margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .application-info {
@@ -20,18 +27,24 @@
 
 .response-card {
   margin-bottom: 16px;
+  border-radius: 6px;
+  border-left: 3px solid #1890ff;
 }
 
 .question {
   margin-bottom: 8px;
+  color: #333;
 }
 
 .answer {
   padding-left: 16px;
+  color: #555;
 }
 
 .application-actions {
   margin-top: 16px;
+  display: flex;
+  gap: 8px;
 }
 
 .loading {
@@ -41,4 +54,10 @@
   height: 300px;
   font-size: 16px;
   color: #666;
+}
+
+/* Ant Design descriptions overrides */
+.ant-descriptions-bordered .ant-descriptions-item-label {
+  background-color: #f7f7f7;
+  font-weight: 500;
 }

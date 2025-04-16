@@ -9,7 +9,7 @@ from models.applications.applications_model import Response
 from models.club_recruitment.club_recruitment_model import Form, Question
 from models.clubs.clubs_model import club_members, Club
 from models.users.users_model import User
-from schemas.applications.applications import ApplicationStatusUpdate
+from schemas.applications.applications import ApplicationStatusUpdate, ApplicationDetailOut, ResponseOut
 from utils.database_utils import get_db
 from utils.session_utils import get_current_user
 
@@ -103,40 +103,45 @@ async def _check_application_access(application_id: int, db: Session, user_data=
 async def get_application_details(application_id: int, db: Session = Depends(get_db),
                                   user_data=Depends(get_current_user)):
     try:
-        app_data = db.query(Application, Form.name.label("form_title"), Form.club_id.label("club_id"),
-                            Club.name.label("club_name"), User.uid.label("user_name"),
-                            User.email.label("user_email")).join(Form, Application.form_id == Form.id).join(Club,
-                                                                                                            Form.club_id == Club.cid).join(
-            User, Application.user_id == User.uid).filter(Application.id == application_id).first()
+        result = await _check_application_access(application_id, db, user_data)
+        application = result["application"]
 
-        if not app_data:
-            raise HTTPException(status_code=404, detail=f"Application with ID {application_id} not found")
+        form = db.query(Form).filter(Form.id == application.form_id).first()
+        if not form:
+            raise HTTPException(status_code=404, detail="Form associated with this application not found")
 
-        app, form_title, club_id, club_name, user_name, user_email = app_data
+        user = db.query(User).filter(User.uid == application.user_id).first()
+        user_email = user.email if user else None
 
-        # get the application responses
-        responses = db.query(Response).filter(Response.application_id == application_id).all()
+        responses_data = []
+        responses = db.query(Response).filter(Response.application_id == application.id).all()
 
-        # format the responses
-        formatted_responses = []
         for response in responses:
             question = db.query(Question).filter(Question.id == response.question_id).first()
 
-            response_out = {"question_id": response.question_id, "answer_text": response.answer_text,
-                "question_text": question.question_text if question else None,
-                "question_order": question.question_order if question else None}
-            formatted_responses.append(response_out)
+            response_out = ResponseOut(id=response.id, question_id=response.question_id,
+                answer_text=response.answer_text, question_text=question.question_text if question else None,
+                question_order=question.question_order if question else None)
+            responses_data.append(response_out)
 
-        current_user_uid = user_data.get('uid')
-        is_club_member = check_club_membership(current_user_uid, club_id, db)
+        responses_data.sort(key=lambda x: (x.question_order or float('inf')))
 
-        result = {"id": app.id, "user_id": app.user_id, "user_name": user_name, "user_email": user_email,
-                  "status": app.status.name, "endorser_ids": app.endorser_ids,
-                  "submitted_at": app.submitted_at.isoformat(), "form_id": app.form_id, "form_title": form_title,
-                  "club_id": club_id, "club_name": club_name, "responses": formatted_responses,
-                  "is_club_member": is_club_member}
+        current_user_id = result["user_id"]
+        is_club_member = False
 
-        return result
+        if form.club_id:
+            club_membership = db.query(club_members).filter(
+                and_(club_members.c.club_id == form.club_id, club_members.c.user_id == current_user_id)).first()
+            is_club_member = club_membership is not None
+
+        application_details = ApplicationDetailOut(id=application.id, form_id=application.form_id,
+            user_id=application.user_id, form_name=form.name, club_id=form.club_id,
+            submitted_at=application.submitted_at, status=application.status, responses=responses_data,
+            endorser_ids=application.endorser_ids if application.endorser_ids else [],
+            endorser_count=len(application.endorser_ids) if application.endorser_ids else 0, user_email=user_email,
+            is_club_member=is_club_member)
+
+        return application_details
 
     except HTTPException as e:
         raise e
@@ -304,8 +309,13 @@ async def get_form_applications(form_id: int, db: Session, user_data=Depends(get
         user = db.query(User).filter(User.uid == app.user_id).first()
         user_name = f"{user.first_name} {user.last_name}" if user else "Unknown"
 
-        app_dict = {"id": app.id, "user_id": app.user_id, "user_name": user_name, "status": app.status.name,
-            "endorser_ids": app.endorser_ids if app.endorser_ids else [], "submitted_at": app.submitted_at.isoformat()}
+        app_dict = {"id": app.id, "user_id": app.user_id, "user_name": user_name,
+            "user_email": user.email if user else None,
+            "form_id": app.form_id,
+            "form_name": form.name if form else None,
+            "status": app.status.name, "endorser_ids": app.endorser_ids if app.endorser_ids else [],
+            "endorser_count": len(app.endorser_ids) if app.endorser_ids else 0,
+            "submitted_at": app.submitted_at.isoformat()}
         result.append(app_dict)
 
     return result
@@ -332,10 +342,10 @@ async def get_user_applications(db: Session, user_data=Depends(get_current_user)
             continue
 
         app_dict = {"id": app.id, "form_id": app.form_id, "form_name": form.name, "club_id": form.club_id,
-            "club_name": club.name if club else "Unknown", "status": app.status.name,
-            "endorser_ids": app.endorser_ids if app.endorser_ids else [],
-            "endorser_count": len(app.endorser_ids) if app.endorser_ids else 0,
-            "submitted_at": app.submitted_at.isoformat()}
+                    "club_name": club.name if club else "Unknown", "status": app.status.name,
+                    "endorser_ids": app.endorser_ids if app.endorser_ids else [],
+                    "endorser_count": len(app.endorser_ids) if app.endorser_ids else 0,
+                    "submitted_at": app.submitted_at.isoformat()}
         result.append(app_dict)
 
     return result

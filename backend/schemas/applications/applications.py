@@ -35,6 +35,8 @@ class ApplicationDetailOut(BaseModel):
     id: int
     form_id: int
     user_id: str
+    user_email: str
+    is_club_member: bool
     form_name: Optional[str] = None
     club_id: Optional[str] = None
     submitted_at: datetime

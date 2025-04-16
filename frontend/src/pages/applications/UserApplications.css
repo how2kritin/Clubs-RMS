@@ -1,9 +1,20 @@
+/* UserApplications.css */
+
 .user-applications-container {
   padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .user-applications-card {
+  border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-applications-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .loading {
@@ -12,5 +23,27 @@
   align-items: center;
   height: 300px;
   font-size: 16px;
+  color: #666;
+}
+
+/* Ant Design table overrides */
+.ant-table {
+  font-size: 14px;
+}
+
+.ant-table-thead > tr > th {
+  background-color: #f7f7f7;
+  color: #333;
+  font-weight: 600;
+}
+
+.ant-tag {
+  padding: 2px 8px;
+  font-weight: 500;
+}
+
+.empty-applications {
+  text-align: center;
+  padding: 40px 0;
   color: #666;
 }
