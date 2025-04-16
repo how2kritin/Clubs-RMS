@@ -27,15 +27,23 @@ const CalendarComponent = ({ events }: CalendarProps) => {
         initialView="dayGridMonth"
         events={events}
         eventContent={(eventInfo: EventContentArg) => (
-          <div>
-            <b>{eventInfo.timeText}</b>
-            <i>{eventInfo.event.title}</i>
+          <div className="fc-event-title-container">
+            <div className="fc-event-tooltip">
+              <strong>{eventInfo.timeText}</strong> - {eventInfo.event.title}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              <b className="fc-event-time">{eventInfo.timeText}</b>
+              <span className="fc-event-title">
+                {eventInfo.event.title}
+              </span>
+            </div>
           </div>
         )}
       />
     </div>
   );
 };
+
 
 // Event loader component that fetches and manages state
 export const CalendarLoader = () => {
@@ -62,7 +70,7 @@ export const CalendarLoader = () => {
           title: event.title,
           start: event.start,
           end: event.end,
-          color: event.color,
+          color: "#000000", // Optional: Set a default color
         }));
 
         setEvents(formattedEvents);
