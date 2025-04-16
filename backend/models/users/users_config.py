@@ -5,6 +5,7 @@ courtesy of https://github.com/bhavberi
 """
 
 from os import getenv
+from typing import List
 
 from cas import CASClientV3
 from fastapi import HTTPException, Response
@@ -13,7 +14,17 @@ from starlette.responses import RedirectResponse
 
 from models.users.users_model import User
 from models.clubs.clubs_model import Club
+from utils.mail_utils import send_email
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
+
+
+def inform_users(subscribers: List, subject: str, content: str) -> None:
+    recipients = [
+        {"name": user.first_name + " " + user.last_name, "email": user.email}
+        for user in subscribers
+    ]
+
+    send_email(recipients, subject, content)
 
 
 def get_batch(roll):

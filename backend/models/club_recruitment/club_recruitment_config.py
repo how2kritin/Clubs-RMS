@@ -10,16 +10,6 @@ from models.club_recruitment.club_recruitment_model import (
 )
 from models.users.users_model import User
 from schemas.form.form import FormCreate, FormUpdate
-from utils.mail_utils import send_email
-
-
-def inform_users(subscribers: List, subject: str, content: str) -> None:
-    recipients = [
-        {"name": user.first_name + " " + user.last_name, "email": user.email}
-        for user in subscribers
-    ]
-
-    send_email(recipients, subject, content)
 
 
 async def create_form(db: Session, form_data: FormCreate) -> Form:

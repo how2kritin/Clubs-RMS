@@ -15,6 +15,8 @@ from models.applications.applications_config import (
     get_user_applications,
     get_form_applications,
 )
+from models.users.users_config import inform_users
+from models.users.users_model import User
 from schemas.applications.applications import (
     ApplicationOut,
     ApplicationStatusUpdate,
@@ -96,8 +98,19 @@ async def update_application_status_endpoint(
     status_update: ApplicationStatusUpdate,
     db: Session = Depends(get_db),
 ):
-    updated_application = await update_application_status(
+    updated_application, form = await update_application_status(
         db, application_id, status_update
+    )
+
+    user_id = updated_application.user_id
+    user = db.query(User).filter(User.uid == user_id).first()
+    subscribers = [user]
+
+    inform_users(
+        subscribers,
+        "Application Status Update",
+        f"your application status of form {form.name} for club {form.club_id} has been "
+        + f"updated to {updated_application.status}.",
     )
 
     return updated_application

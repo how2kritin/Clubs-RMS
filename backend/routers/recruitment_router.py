@@ -9,11 +9,14 @@ from models.club_recruitment.club_recruitment_config import (
     get_form_applicant_emails,
     get_form_by_id,
     get_forms_by_club,
-    inform_users,
     update_form,
 )
 from models.clubs.clubs_config import get_all_subscribers
-from models.users.users_config import is_admin_of_club, is_member_of_club
+from models.users.users_config import (
+    inform_users,
+    is_admin_of_club,
+    is_member_of_club,
+)
 from schemas.form.form import FormCreate, FormOut, FormUpdate
 from utils.database_utils import get_db
 from utils.session_utils import SESSION_COOKIE_NAME, get_current_user

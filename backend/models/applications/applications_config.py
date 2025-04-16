@@ -287,7 +287,7 @@ async def update_application_status(
 
     db.commit()
     db.refresh(application)
-    return application
+    return application, form
 
 
 # if the current user is a member of this club, they can endorse the application.
