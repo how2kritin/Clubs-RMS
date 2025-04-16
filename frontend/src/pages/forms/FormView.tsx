@@ -13,7 +13,7 @@ interface FormDetails {
   name: string;
   deadline?: string;
   questions: Question[];
-  club_id?: string; // Added for club member check
+  club_id?: string; // For club member/admin check
 }
 
 function FormView() {
@@ -26,6 +26,7 @@ function FormView() {
   const [editedDeadline, setEditedDeadline] = useState<string>("");
   const [editedQuestions, setEditedQuestions] = useState<Question[]>([]);
   const [isClubMember, setIsClubMember] = useState<boolean>(false);
+  const [isClubAdmin, setIsClubAdmin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -46,16 +47,29 @@ function FormView() {
           setEditedDeadline("");
         }
 
-        // Check if user is a club member
+        // Check if the user is a club member.
         if (data.club_id) {
-          const clubInfoResponse = await fetch('/api/user/user_club_info', {
-            credentials: 'include'
+          const clubInfoResponse = await fetch("/api/user/user_club_info", {
+            credentials: "include",
           });
           if (clubInfoResponse.ok) {
             const clubsData = await clubInfoResponse.json();
-            const isMember = Array.isArray(clubsData) &&
-                            clubsData.some((club: any) => club.cid === data.club_id);
+            const isMember =
+              Array.isArray(clubsData) &&
+              clubsData.some((club: any) => club.cid === data.club_id);
             setIsClubMember(isMember);
+          }
+
+          // Check if the user is a club admin.
+          const clubAdminResponse = await fetch(
+            `/api/user/user_admin/${data.club_id}`,
+            {
+              credentials: "include",
+            },
+          );
+          if (clubAdminResponse.ok) {
+            const adminData = await clubAdminResponse.json();
+            setIsClubAdmin(adminData.is_admin);
           }
         }
 
@@ -162,7 +176,9 @@ function FormView() {
   }
 
   // Check if deadline has passed
-  const isDeadlinePassed = form.deadline ? new Date() > new Date(form.deadline) : false;
+  const isDeadlinePassed = form.deadline
+    ? new Date() > new Date(form.deadline)
+    : false;
 
   return (
     <div className="form-view">
@@ -233,9 +249,11 @@ function FormView() {
             >
               Cancel
             </button>
-            <button onClick={handleDelete} className="delete-btn">
-              Delete Form
-            </button>
+            {isClubAdmin && (
+              <button onClick={handleDelete} className="delete-btn">
+                Delete Form
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -251,7 +269,10 @@ function FormView() {
           {/* Action buttons for form */}
           <div className="form-action-buttons">
             {isClubMember && (
-              <button className="view-applications-btn" onClick={handleViewApplications}>
+              <button
+                className="view-applications-btn"
+                onClick={handleViewApplications}
+              >
                 View Applications
               </button>
             )}
@@ -263,9 +284,11 @@ function FormView() {
               {isDeadlinePassed ? "Deadline Passed" : "Apply to Form"}
             </button>
             <button onClick={() => setIsEditing(true)}>Edit Form</button>
-            <button onClick={handleDelete} className="delete-btn">
-              Delete Form
-            </button>
+            {isClubAdmin && (
+              <button onClick={handleDelete} className="delete-btn">
+                Delete Form
+              </button>
+            )}
           </div>
 
           <h3>Questions</h3>
@@ -284,3 +307,4 @@ function FormView() {
 }
 
 export default FormView;
+

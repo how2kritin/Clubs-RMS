@@ -8,7 +8,6 @@ interface FormSummary {
 }
 
 function ClubForms() {
-  // Extract the clubId from the URL parameters.
   const { clubId } = useParams<{ clubId: string }>();
   const [forms, setForms] = useState<FormSummary[]>([]);
 
@@ -30,7 +29,6 @@ function ClubForms() {
       <ul className="forms-list">
         {forms.map((form) => (
           <li key={form.id}>
-            {/* Clicking this link navigates to the form view page */}
             <Link to={`/form/${form.id}`}>{form.name}</Link>
           </li>
         ))}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./CreateForm.css";
 
@@ -15,42 +15,67 @@ interface FormData {
 }
 
 function CreateForm() {
-  // Extract the clubId from the URL parameters.
   const { clubId } = useParams<{ clubId: string }>();
   const navigate = useNavigate();
 
   const [formName, setFormName] = useState<string>("");
-  // Store the deadline as a string to work with the datetime-local input.
   const [deadline, setDeadline] = useState<string>("");
-  // Initialize with one question by default.
   const [questions, setQuestions] = useState<Question[]>([
     { question_text: "" },
   ]);
+  const [isClubAdmin, setIsClubAdmin] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Function to add a new empty question field.
+  // Check if the user is a club admin
+  useEffect(() => {
+    async function checkAdminStatus() {
+      if (!clubId) return;
+      try {
+        const response = await fetch(`/api/user/user_admin/${clubId}`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const adminData = await response.json();
+          setIsClubAdmin(adminData.is_admin);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkAdminStatus();
+  }, [clubId]);
+
   const addQuestion = () => {
     setQuestions([...questions, { question_text: "" }]);
   };
 
-  // Function to update a question field.
   const updateQuestion = (index: number, value: string) => {
     const newQuestions = [...questions];
     newQuestions[index].question_text = value;
     setQuestions(newQuestions);
   };
 
-  // Handles form submission.
+  const removeQuestion = (index: number) => {
+    // Ensure at least one question remains.
+    if (questions.length > 1) {
+      const newQuestions = questions.filter((_, i) => i !== index);
+      setQuestions(newQuestions);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Construct the payload following your backend's schema.
     const payload: FormData = {
       name: formName,
-      club_id: clubId, // Received directly from the URL path.
+      club_id: clubId,
       deadline: deadline ? new Date(deadline) : undefined,
       questions: questions.map((q, index) => ({
         ...q,
-        question_order: index + 1, // Optionally set order of questions.
+        question_order: index + 1,
       })),
     };
 
@@ -65,7 +90,6 @@ function CreateForm() {
         body: JSON.stringify(payload),
       });
       if (!response.ok) {
-        // Handle error case
         console.error("Error creating form");
       } else {
         const data = await response.json();
@@ -77,11 +101,21 @@ function CreateForm() {
     }
   };
 
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+
+  if (!isClubAdmin) {
+    return (
+      <p className="warning">Only club admins can create and delete forms.</p>
+    );
+  }
+
   return (
     <div className="create-form">
       <h2>Create a New Recruitment Form {clubId && `for Club ${clubId}`}</h2>
       <form onSubmit={handleSubmit}>
-        <div>
+        <div className="form-field">
           <label htmlFor="formName">Form Name:</label>
           <input
             id="formName"
@@ -92,7 +126,7 @@ function CreateForm() {
             required
           />
         </div>
-        <div>
+        <div className="form-field">
           <label htmlFor="deadline">Deadline:</label>
           <input
             id="deadline"
@@ -102,10 +136,10 @@ function CreateForm() {
             placeholder="Enter Deadline"
           />
         </div>
-        <div>
+        <div className="form-field questions-container">
           <label>Questions:</label>
           {questions.map((q, index) => (
-            <div key={index}>
+            <div key={index} className="question-item">
               <input
                 type="text"
                 value={q.question_text}
@@ -113,13 +147,28 @@ function CreateForm() {
                 placeholder={`Question ${index + 1}`}
                 required
               />
+              {questions.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeQuestion(index)}
+                  className="remove-question-btn"
+                >
+                  Remove
+                </button>
+              )}
             </div>
           ))}
-          <button type="button" onClick={addQuestion}>
+          <button
+            type="button"
+            onClick={addQuestion}
+            className="add-question-btn"
+          >
             Add Question
           </button>
         </div>
-        <button type="submit">Create Form</button>
+        <button type="submit" className="submit-btn">
+          Create Form
+        </button>
       </form>
     </div>
   );

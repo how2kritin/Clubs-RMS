@@ -1,83 +1,85 @@
 .create-form {
   max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #ffffff;
+  margin: 2rem auto;
+  padding: 2rem;
   border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #fafafa;
 }
 
 .create-form h2 {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: #333;
   text-align: center;
+  margin-bottom: 1.5rem;
 }
 
-.create-form form {
+.form-field {
+  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 15px;
 }
 
-.create-form label {
-  font-size: 0.9rem;
-  color: #555;
-  margin-bottom: 5px;
+.form-field label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
 }
 
-.create-form input[type="text"],
-.create-form input[type="datetime-local"] {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
+.form-field input[type="text"],
+.form-field input[type="datetime-local"] {
+  padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box;
 }
 
-.create-form input[type="text"]:focus,
-.create-form input[type="datetime-local"]:focus {
-  border-color: #007bff;
-  outline: none;
+.questions-container {
+  margin-top: 1rem;
 }
 
-.create-form button {
-  padding: 10px 15px;
-  font-size: 1rem;
-  color: #fff;
-  background-color: #007bff;
-  border: none;
+.question-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.question-item input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-.create-form button:hover {
+.add-question-btn,
+.remove-question-btn,
+.submit-btn {
+  cursor: pointer;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.add-question-btn:hover,
+.remove-question-btn:hover,
+.submit-btn:hover {
   background-color: #0056b3;
 }
 
-.create-form .questions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.remove-question-btn {
+  background-color: #dc3545;
 }
 
-.create-form .questions div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.remove-question-btn:hover {
+  background-color: #c82333;
 }
 
-.create-form .questions input[type="text"] {
-  flex: 1;
-}
-
-.create-form .questions button {
-  background-color: #28a745;
-}
-
-.create-form .questions button:hover {
-  background-color: #218838;
+.warning {
+  max-width: 600px;
+  margin: 2rem auto;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #dc3545;
 }
