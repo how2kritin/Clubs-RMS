@@ -1,12 +1,15 @@
 import enum
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Time
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Time, Date
 from sqlalchemy.orm import relationship
+
+
 from utils.database_utils import Base
 
 
 # TODO: generalisation is future scope?
 class CalendarEventType(enum.Enum):
-    interview_slot = "interview_slot"
+    interview = "interview"
 
 
 class CalendarEvent(Base):
@@ -49,19 +52,19 @@ class CalendarEvent(Base):
     # else, it's the applicant user
     # always visible to club members
     visible_to_user = Column(
-        Integer,
-        ForeignKey("users.id"),
+        String,
+        ForeignKey("users.uid"),
         nullable=True,
     )
-    user = relationship(
-        "User",
-        backref="calendar_event",
-    )
+    # user = relationship(
+    #     "User",
+    #     backref="calendar_event",
+    # )
 
     # TODO: check with CC data/dummy data
     club_id = Column(
         String,
-        # ForeignKey("clubs.id"), # TODO: enable when dummy DB added
+        ForeignKey("clubs.cid"),
         nullable=True,
     )
     # club = relationship(
@@ -74,7 +77,27 @@ class CalendarEvent(Base):
         nullable=False,
     )
     title = Column(String, nullable=False)
-    description = Column(String, nullable=True)
+    # description = Column(String, nullable=True)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
-    location = Column(String, nullable=True)
+    date = Column(Date, nullable=False)
+    # location = Column(String, nullable=True)
+
+    @property
+    def start(self):
+        return datetime.combine(self.date, self.start_time).isoformat()
+
+    @property
+    def end(self):
+        if self.end_time:
+            return datetime.combine(self.date, self.end_time).isoformat()
+        return None
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "start": self.start,
+            "end": self.end,
+            "color": "#00FF00",  # green
+        }

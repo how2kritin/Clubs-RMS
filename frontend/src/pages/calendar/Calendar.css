@@ -1,0 +1,230 @@
+/* Calendar container styling */
+.calendar-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+    background-color: var(--background-color, #fff);
+    color: var(--text-color, #333);
+    border-radius: 8px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Dark mode variables */
+.dark .calendar-container {
+    --background-color: #1f2937;
+    /* gray-800 */
+    --text-color: #d1d5db;
+    /* gray-300 */
+    --calendar-border: #374151;
+    /* gray-700 */
+    --event-bg: #374151;
+    /* gray-700 */
+    --event-text: #f3f4f6;
+    /* gray-100 */
+    --header-bg: #111827;
+    /* gray-900 */
+    --button-hover: #4f46e5;
+    /* indigo-600 */
+}
+
+/* Light mode variables */
+.calendar-container {
+    --calendar-border: #e5e7eb;
+    /* gray-200 */
+    --event-bg: #e0e7ff;
+    /* indigo-100 */
+    --event-text: #3730a3;
+    /* indigo-800 */
+    --header-bg: #f3f4f6;
+    /* gray-100 */
+    --button-hover: #4338ca;
+    /* indigo-700 */
+}
+
+/* FullCalendar overrides */
+.fc {
+    background-color: var(--background-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--calendar-border);
+}
+
+.fc-header-toolbar {
+    padding: 1rem;
+    background-color: var(--header-bg);
+    border-radius: 8px 8px 0 0;
+}
+
+.fc-button {
+    background-color: var(--button-bg, #4f46e5) !important;
+    border-color: var(--button-bg, #4f46e5) !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.fc-button:hover {
+    background-color: var(--button-hover) !important;
+    border-color: var(--button-hover) !important;
+}
+
+.fc-daygrid-event {
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    background-color: var(--event-bg);
+    color: var(--event-text);
+    border: 1px solid var(--calendar-border);
+}
+
+.fc th {
+    background-color: var(--header-bg);
+    color: var(--text-color);
+}
+
+.fc-daygrid-day {
+    border-color: var(--calendar-border) !important;
+}
+
+.fc-daygrid-day-number {
+    color: var(--text-color);
+}
+
+/* Loading and error states */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2em;
+    color: var(--text-color);
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.fc-daygrid-event {
+    /* Existing styles */
+    max-width: 200px;
+    /* Adjust based on your needs */
+}
+
+.fc-event-title-container {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    /* For tooltip positioning */
+}
+
+/* Custom tooltip styling */
+.fc-event-title-container:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--tooltip-bg, rgba(0, 0, 0, 0.9));
+    color: var(--tooltip-text, #fff);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+
+/* Dark mode tooltip variables */
+.dark .fc-event-title-container:hover::after {
+    --tooltip-bg: rgba(255, 255, 255, 0.9);
+    --tooltip-text: #1f2937;
+}
+
+/* Add these styles */
+.fc-daygrid-event-dot {
+    display: none !important;
+    /* Hide default dot */
+}
+
+.fc-event-title {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.fc-event-title-container {
+    position: relative;
+    width: 100%;
+}
+
+.fc-event-title-container:hover .fc-event-tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.fc-event-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--tooltip-bg, rgba(0, 0, 0, 0.9));
+    color: var(--tooltip-text, #fff);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+    margin-bottom: 8px;
+    pointer-events: none;
+}
+
+.dark .fc-event-tooltip {
+    --tooltip-bg: rgba(255, 255, 255, 0.9);
+    --tooltip-text: #1f2937;
+}
+
+/* Add these fixes */
+.fc-event-title-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.fc-event-title {
+    display: inline-block;
+    max-width: calc(100% - 30px);
+    /* Account for time text */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.fc-event-time {
+    display: inline-block;
+    width: 28px;
+    /* Fixed width for time */
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.fc-event-tooltip {
+    /* Existing styles */
+    min-width: 200px;
+    /* Ensure tooltip can show long text */
+    white-space: normal;
+    /* Allow wrapping */
+    word-break: break-word;
+    /* Break long words */
+    max-width: 300px;
+    text-align: left;
+}
