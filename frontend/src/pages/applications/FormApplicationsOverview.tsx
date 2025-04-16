@@ -42,7 +42,7 @@ const FormApplicationsOverview: React.FC = () => {
         setFormTitle(formData.name);
 
         // Then fetch the applications for this form - this is a new endpoint we need
-        const applicationsResponse = await fetch(`/api/applications/form/${formId}`);
+        const applicationsResponse = await fetch(`/api/application/form/${formId}`);
         if (!applicationsResponse.ok) {
           throw new Error(`Failed to fetch applications: ${applicationsResponse.statusText}`);
         }

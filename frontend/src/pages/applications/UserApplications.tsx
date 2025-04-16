@@ -28,7 +28,7 @@ const UserApplications: React.FC = () => {
         const fetchUserApplications = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/applications/user');
+                const response = await fetch('/api/application/user');
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch applications: ${response.statusText}`);
@@ -46,6 +46,8 @@ const UserApplications: React.FC = () => {
 
         fetchUserApplications();
     }, []);
+
+    console.log(applications)
 
     const columns = [{
         title: 'Club', dataIndex: 'club_name', key: 'club_name',

@@ -47,3 +47,31 @@ class ApplicationDetailOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+class UserApplicationOut(BaseModel):
+    id: int
+    form_id: int
+    form_name: Optional[str] = None
+    club_id: Optional[str] = None
+    club_name: Optional[str] = None
+    status: ApplicationStatus
+    endorser_ids: List[str] = []
+    endorser_count: int = 0
+    submitted_at: datetime
+
+    class Config:
+        orm_mode = True
+
+class FormApplicationOut(BaseModel):
+    id: int
+    user_id: str
+    user_name: str
+    user_email: str
+    form_id: int
+    status: ApplicationStatus
+    endorser_ids: List[str] = []
+    endorser_count: int = 0
+    submitted_at: datetime
+
+    class Config:
+        orm_mode = True

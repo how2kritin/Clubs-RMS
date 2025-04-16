@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {Alert, Button, Card, Descriptions, Divider, Space, Tag, Typography} from 'antd';
-import {CheckOutlined, CloseOutlined, LikeOutlined, RollbackOutlined} from '@ant-design/icons';
+import {Alert, Button, Card, Descriptions, Divider, Modal, Space, Tag, Typography} from 'antd';
+import {CheckOutlined, CloseOutlined, DeleteOutlined, LikeOutlined, RollbackOutlined} from '@ant-design/icons';
 import './ApplicationDetail.css';
 
 const {Title, Text} = Typography;
+const {confirm} = Modal;
 
 interface Response {
     question_id: number;
@@ -24,11 +25,9 @@ interface ApplicationDetail {
     responses: Response[];
     endorser_ids: string[];
     endorser_count: number;
-    user_name: string;
     user_email: string;
     is_club_member: boolean;
 }
-
 
 const ApplicationDetail: React.FC = () => {
     const {formId, applicationId} = useParams<{ formId: string, applicationId: string }>();
@@ -38,6 +37,7 @@ const ApplicationDetail: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState<boolean>(false);
     const [isClubMember, setIsClubMember] = useState<boolean>(false);
+    const [currentUserId, setCurrentUserId] = useState<string>('');
 
     useEffect(() => {
         const fetchApplicationDetail = async () => {
@@ -45,7 +45,7 @@ const ApplicationDetail: React.FC = () => {
                 setLoading(true);
 
                 // Fetch application details
-                const response = await fetch(`/api/applications/${applicationId}`);
+                const response = await fetch(`/api/application/${applicationId}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch application: ${response.statusText}`);
                 }
@@ -53,6 +53,13 @@ const ApplicationDetail: React.FC = () => {
                 const data = await response.json();
                 setApplication(data);
                 setIsClubMember(data?.is_club_member);
+
+                // Get current user information to check if they're the applicant
+                const userInfoResponse = await fetch('/api/application/autofill-details');
+                if (userInfoResponse.ok) {
+                    const userData = await userInfoResponse.json();
+                    setCurrentUserId(userData.user_id);
+                }
 
                 setLoading(false);
             } catch (err) {
@@ -70,7 +77,7 @@ const ApplicationDetail: React.FC = () => {
     const handleStatusUpdate = async (newStatus: string) => {
         try {
             setActionLoading(true);
-            const response = await fetch(`/api/applications/${applicationId}/status`, {
+            const response = await fetch(`/api/application/${applicationId}/status`, {
                 method: 'PUT', headers: {
                     'Content-Type': 'application/json',
                 }, body: JSON.stringify({
@@ -83,7 +90,7 @@ const ApplicationDetail: React.FC = () => {
             }
 
             // Refresh application data after status update
-            const updatedApp = await fetch(`/api/applications/${applicationId}`);
+            const updatedApp = await fetch(`/api/application/${applicationId}`);
             const updatedData = await updatedApp.json();
             setApplication(updatedData);
             setActionLoading(false);
@@ -97,7 +104,7 @@ const ApplicationDetail: React.FC = () => {
     const handleEndorse = async () => {
         try {
             setActionLoading(true);
-            const response = await fetch(`/api/applications/${applicationId}/endorse`, {
+            const response = await fetch(`/api/application/${applicationId}/endorse`, {
                 method: 'PUT',
             });
 
@@ -106,7 +113,7 @@ const ApplicationDetail: React.FC = () => {
             }
 
             // Refresh application data after endorsement
-            const updatedApp = await fetch(`/api/applications/${applicationId}`);
+            const updatedApp = await fetch(`/api/application/${applicationId}`);
             const updatedData = await updatedApp.json();
             setApplication(updatedData);
             setActionLoading(false);
@@ -115,6 +122,35 @@ const ApplicationDetail: React.FC = () => {
             setError(err instanceof Error ? err.message : 'An error occurred');
             setActionLoading(false);
         }
+    };
+
+    const handleDeleteApplication = () => {
+        confirm({
+            title: 'Are you sure you want to delete this application?',
+            content: 'This action cannot be undone.',
+            okText: 'Yes, Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk: async () => {
+                try {
+                    setActionLoading(true);
+                    const response = await fetch(`/api/application/${applicationId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to delete application: ${response.statusText}`);
+                    }
+
+                    // Navigate back to my applications page
+                    navigate('/my-applications');
+                } catch (err) {
+                    console.error('Error deleting application:', err);
+                    setError(err instanceof Error ? err.message : 'An error occurred');
+                    setActionLoading(false);
+                }
+            },
+        });
     };
 
     if (loading) {
@@ -131,78 +167,98 @@ const ApplicationDetail: React.FC = () => {
 
     const statusColor = application.status === 'ongoing' ? 'gold' : application.status === 'accepted' ? 'green' : application.status === 'rejected' ? 'red' : 'blue';
 
+    // Check if current user is the application creator and if application is ongoing
+    const isApplicationCreator = currentUserId === application.user_id;
+    const isOngoing = application.status === 'ongoing';
+    const canDelete = isApplicationCreator && isOngoing;
+
     return (<div className="application-detail-container">
-        <Card className="application-detail-card">
-            <div className="application-detail-header">
-                <Button
-                    icon={<RollbackOutlined/>}
-                    onClick={() => navigate(`/forms/${formId}/applications`)}
-                >
-                    Back to Applications
-                </Button>
-            </div>
-
-            <Title level={2}>Application Details</Title>
-            <Descriptions bordered className="application-info">
-                <Descriptions.Item label="Form" span={3}>{application.form_name}</Descriptions.Item>
-                <Descriptions.Item label="Applicant ID" span={3}>{application.user_id}</Descriptions.Item>
-                <Descriptions.Item label="Email" span={1}>{application.user_email}</Descriptions.Item>
-                <Descriptions.Item label="Status">
-                    <Tag color={statusColor}>{application.status.toUpperCase()}</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Endorsements">{application.endorser_count}</Descriptions.Item>
-                <Descriptions.Item label="Submitted Date">
-                    {new Date(application.submitted_at).toLocaleString()}
-                </Descriptions.Item>
-            </Descriptions>
-
-            <Divider orientation="left">Responses</Divider>
-
-            <div className="application-responses">
-                {application.responses.map((response, index) => (<Card key={index} className="response-card">
-                    <div className="question">
-                        <Text strong>Q: {response.question_text}</Text>
-                    </div>
-                    <div className="answer">
-                        <Text>A: {response.answer_text}</Text>
-                    </div>
-                </Card>))}
-            </div>
-
-            {/* Club member actions */}
-            {isClubMember && (<>
-                <Divider orientation="left">Actions</Divider>
-                <Space className="application-actions">
+            <Card className="application-detail-card">
+                <div className="application-detail-header">
                     <Button
-                        type="primary"
-                        icon={<CheckOutlined/>}
-                        onClick={() => handleStatusUpdate('accepted')}
-                        loading={actionLoading}
-                        disabled={application.status === 'accepted'}
+                        icon={<RollbackOutlined/>}
+                        onClick={() => navigate(-1)}
                     >
-                        Accept
+                        Back to Applications
                     </Button>
-                    <Button
-                        danger
-                        icon={<CloseOutlined/>}
-                        onClick={() => handleStatusUpdate('rejected')}
-                        loading={actionLoading}
-                        disabled={application.status === 'rejected'}
-                    >
-                        Reject
-                    </Button>
-                    <Button
-                        icon={<LikeOutlined/>}
-                        onClick={handleEndorse}
-                        loading={actionLoading}
-                        disabled={application.endorser_ids.includes(application.user_id)}
-                    >
-                        Endorse
-                    </Button>
-                </Space>
-            </>)}
-        </Card>
-    </div>);
+                </div>
+
+                <Title level={2}>Application Details</Title>
+                <Descriptions bordered column={3} className="application-info">
+                    <Descriptions.Item label="Form" span={3}>{application.form_name}</Descriptions.Item>
+                    <Descriptions.Item label="Applicant ID" span={3}>{application.user_id}</Descriptions.Item>
+                    <Descriptions.Item label="Email" span={2}>{application.user_email}</Descriptions.Item>
+                    <Descriptions.Item label="Status" span={1}>
+                        <Tag color={statusColor}>{application.status.toUpperCase()}</Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Endorsements" span={1}>{application.endorser_count}</Descriptions.Item>
+                    <Descriptions.Item label="Submitted Date" span={2}>
+                        {new Date(application.submitted_at).toLocaleString()}
+                    </Descriptions.Item>
+                </Descriptions>
+
+                <Divider orientation="left">Responses</Divider>
+
+                <div className="application-responses">
+                    {application.responses.map((response, index) => (<Card key={index} className="response-card">
+                            <div className="question">
+                                <Text strong>Q: {response.question_text}</Text>
+                            </div>
+                            <div className="answer">
+                                <Text>A: {response.answer_text}</Text>
+                            </div>
+                        </Card>))}
+                </div>
+
+                {/* Club member actions */}
+                {isClubMember && (<>
+                        <Divider orientation="left">Club Member Actions</Divider>
+                        <Space className="application-actions">
+                            <Button
+                                type="primary"
+                                icon={<CheckOutlined/>}
+                                onClick={() => handleStatusUpdate('accepted')}
+                                loading={actionLoading}
+                                disabled={application.status === 'accepted'}
+                            >
+                                Accept
+                            </Button>
+                            <Button
+                                danger
+                                icon={<CloseOutlined/>}
+                                onClick={() => handleStatusUpdate('rejected')}
+                                loading={actionLoading}
+                                disabled={application.status === 'rejected'}
+                            >
+                                Reject
+                            </Button>
+                            <Button
+                                icon={<LikeOutlined/>}
+                                onClick={handleEndorse}
+                                loading={actionLoading}
+                                disabled={application.endorser_ids.includes(currentUserId)}
+                            >
+                                Endorse
+                            </Button>
+                        </Space>
+                    </>)}
+
+                {/* Application creator actions */}
+                {canDelete && (<>
+                        <Divider orientation="left">Applicant Actions</Divider>
+                        <Space className="application-actions">
+                            <Button
+                                danger
+                                icon={<DeleteOutlined/>}
+                                onClick={handleDeleteApplication}
+                                loading={actionLoading}
+                            >
+                                Delete Application
+                            </Button>
+                        </Space>
+                    </>)}
+            </Card>
+        </div>);
 };
 
 export default ApplicationDetail;
