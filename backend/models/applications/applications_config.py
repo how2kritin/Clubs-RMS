@@ -274,6 +274,16 @@ async def update_application_status(
         )
 
     application.status = status_update.status  # type: ignore
+    if application.status == ApplicationStatus.accepted:  # type: ignore
+        club = db.query(Club).filter(Club.cid == form.club_id).first()
+        if not club:
+            raise HTTPException(status_code=404, detail="Club not found")
+
+        user = db.query(User).filter(User.uid == application.user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        club.members.append(user)
 
     db.commit()
     db.refresh(application)
