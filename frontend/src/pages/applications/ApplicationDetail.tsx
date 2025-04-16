@@ -5,7 +5,6 @@ import {CheckOutlined, CloseOutlined, DeleteOutlined, LikeOutlined, RollbackOutl
 import './ApplicationDetail.css';
 
 const {Title, Text} = Typography;
-const {confirm} = Modal;
 
 interface Response {
     question_id: number;
@@ -38,6 +37,7 @@ const ApplicationDetail: React.FC = () => {
     const [actionLoading, setActionLoading] = useState<boolean>(false);
     const [isClubMember, setIsClubMember] = useState<boolean>(false);
     const [currentUserId, setCurrentUserId] = useState<string>('');
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchApplicationDetail = async () => {
@@ -124,33 +124,34 @@ const ApplicationDetail: React.FC = () => {
         }
     };
 
-    const handleDeleteApplication = () => {
-        confirm({
-            title: 'Are you sure you want to delete this application?',
-            content: 'This action cannot be undone.',
-            okText: 'Yes, Delete',
-            okType: 'danger',
-            cancelText: 'Cancel',
-            onOk: async () => {
-                try {
-                    setActionLoading(true);
-                    const response = await fetch(`/api/application/${applicationId}`, {
-                        method: 'DELETE',
-                    });
+    const showDeleteConfirm = () => {
+        setIsDeleteModalVisible(true);
+    };
 
-                    if (!response.ok) {
-                        throw new Error(`Failed to delete application: ${response.statusText}`);
-                    }
+    const handleDeleteConfirm = async () => {
+        try {
+            setActionLoading(true);
+            const response = await fetch(`/api/application/${applicationId}`, {
+                method: 'DELETE',
+            });
 
-                    // Navigate back to my applications page
-                    navigate('/my-applications');
-                } catch (err) {
-                    console.error('Error deleting application:', err);
-                    setError(err instanceof Error ? err.message : 'An error occurred');
-                    setActionLoading(false);
-                }
-            },
-        });
+            if (!response.ok) {
+                throw new Error(`Failed to delete application: ${response.statusText}`);
+            }
+
+            setIsDeleteModalVisible(false);
+            // Navigate back to my applications page
+            navigate('/my-applications');
+        } catch (err) {
+            console.error('Error deleting application:', err);
+            setError(err instanceof Error ? err.message : 'An error occurred');
+            setActionLoading(false);
+            setIsDeleteModalVisible(false);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setIsDeleteModalVisible(false);
     };
 
     if (loading) {
@@ -250,7 +251,7 @@ const ApplicationDetail: React.FC = () => {
                             <Button
                                 danger
                                 icon={<DeleteOutlined/>}
-                                onClick={handleDeleteApplication}
+                                onClick={showDeleteConfirm}
                                 loading={actionLoading}
                             >
                                 Delete Application
@@ -258,6 +259,20 @@ const ApplicationDetail: React.FC = () => {
                         </Space>
                     </>)}
             </Card>
+
+            {/* Delete confirmation modal */}
+            <Modal
+                title="Delete Application"
+                open={isDeleteModalVisible}
+                onOk={handleDeleteConfirm}
+                onCancel={handleDeleteCancel}
+                okText="Yes, Delete"
+                cancelText="Cancel"
+                okButtonProps={{danger: true, loading: actionLoading}}
+            >
+                <p>Are you sure you want to delete this application?</p>
+                <p>This action cannot be undone.</p>
+            </Modal>
         </div>);
 };
 
