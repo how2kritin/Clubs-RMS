@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from models.users.users_config import (
     get_clubs_by_user,
     is_admin_of_club,
+    is_member_of_club,
     user_login_cas,
     user_logout,
 )
@@ -81,13 +82,16 @@ async def get_user_info(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
-@router.get("/user_admin/{club_id}", status_code=status.HTTP_200_OK)
-async def user_is_admin(
+@router.get("/user_role/{club_id}", status_code=status.HTTP_200_OK)
+async def get_user_role(
     club_id: str,
     current_user: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return {"is_admin": is_admin_of_club(current_user["uid"], club_id, db)}
+    return {
+        "is_admin": is_admin_of_club(current_user["uid"], club_id, db),
+        "is_member": is_member_of_club(current_user["uid"], club_id, db),
+    }
 
 
 @router.get(

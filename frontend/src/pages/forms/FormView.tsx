@@ -62,7 +62,7 @@ function FormView() {
 
           // Check if the user is a club admin.
           const clubAdminResponse = await fetch(
-            `/api/user/user_admin/${data.club_id}`,
+            `/api/user/user_role/${data.club_id}`,
             {
               credentials: "include",
             },
@@ -314,4 +314,3 @@ function FormView() {
 }
 
 export default FormView;
-

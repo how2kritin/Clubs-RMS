@@ -31,7 +31,7 @@ function CreateForm() {
     async function checkAdminStatus() {
       if (!clubId) return;
       try {
-        const response = await fetch(`/api/user/user_admin/${clubId}`, {
+        const response = await fetch(`/api/user/user_role/${clubId}`, {
           credentials: "include",
         });
         if (response.ok) {
