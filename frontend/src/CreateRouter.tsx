@@ -11,7 +11,7 @@ import NotFound from "./pages/NotFound.tsx";
 import { useAuth } from "./AuthProvider.tsx";
 import Navbar from "./layout/Navbar.tsx";
 import ClubForms from "./pages/forms/ClubForms.tsx";
-import FormView from "./pages/FormView.tsx";
+import FormView from "./pages/forms/FormView.tsx";
 import RecommendationsPage from "./pages/RecommendationsPage.tsx";
 import ClubsPage from "./pages/ClubsPage.tsx";
 import ApplyToForm from "./pages/applications/ApplyToForm.tsx";
@@ -162,4 +162,3 @@ export const CreateRouter = () => {
 
   return createBrowserRouter(routes);
 };
-
