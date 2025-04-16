@@ -268,7 +268,7 @@ function FormView() {
 
           {/* Action buttons for form */}
           <div className="form-action-buttons">
-            {isClubMember && (
+            {(isClubMember || isClubAdmin) && (
               <button
                 className="view-applications-btn"
                 onClick={handleViewApplications}
