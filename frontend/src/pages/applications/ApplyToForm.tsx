@@ -1,4 +1,3 @@
-// frontend/src/pages/ApplyToForm.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ApplyToForm.css";
@@ -12,6 +11,7 @@ interface Question {
 interface FormDetails {
   id: string;
   name: string;
+  club_id: string;
   deadline?: string;
   questions: Question[];
 }
@@ -20,30 +20,54 @@ const ApplyToForm: React.FC = () => {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
   const [form, setForm] = useState<FormDetails | null>(null);
-  const [responses, setResponses] = useState<{ question_id: number; answer_text: string }[]>([]);
+  const [responses, setResponses] = useState<
+    { question_id: number; answer_text: string }[]
+  >([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [_userInfo, setUserInfo] = useState<any>(null);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState<boolean>(false);
 
   useEffect(() => {
-    // Fetch form details when component mounts
+    // Fetch form details and enforce RBAC when component mounts
     const fetchForm = async () => {
       try {
-        const response = await fetch(`/api/recruitment/forms/${formId}`, {credentials: 'include'});
-
+        const response = await fetch(`/api/recruitment/forms/${formId}`, {
+          credentials: "include",
+        });
         if (!response.ok) {
           throw new Error(`Error ${response.status}: Failed to fetch form`);
         }
 
         const data: FormDetails = await response.json();
+
+        // Role-based access control: block members/admins from applying
+        try {
+          const roleResp = await fetch(`/api/user/user_role/${data.club_id}`, {
+            credentials: "include",
+          });
+          if (roleResp.ok) {
+            const roleData = await roleResp.json();
+            if (roleData.is_member || roleData.is_admin) {
+              navigate(`/forms/${formId}/applications`);
+              return; // Stop further processing
+            }
+          } else {
+            console.error(
+              `Error ${roleResp.status}: Failed to fetch user role`,
+            );
+          }
+        } catch (roleErr) {
+          console.error("Error fetching user role:", roleErr);
+        }
+
         setForm(data);
 
         // Initialize responses array
-        const initialResponses = data.questions.map(question => ({
+        const initialResponses = data.questions.map((question) => ({
           question_id: question.id,
-          answer_text: ""
+          answer_text: "",
         }));
         setResponses(initialResponses);
 
@@ -53,26 +77,27 @@ const ApplyToForm: React.FC = () => {
           const deadlineDate = new Date(data.deadline);
           setIsDeadlinePassed(currentDate > deadlineDate);
         }
-      } catch (error) {
-        console.error("Error fetching form:", error);
+      } catch (err) {
+        console.error("Error fetching form:", err);
         setError("Failed to load form. Please try again later.");
       }
     };
 
-    // Fetch user info for autofill
+    // Fetch user info for autofill (non-blocking)
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch("/api/application/autofill-details", {credentials: 'include'});
-
+        const response = await fetch("/api/application/autofill-details", {
+          credentials: "include",
+        });
         if (!response.ok) {
-          throw new Error(`Error ${response.status}: Failed to fetch user info`);
+          throw new Error(
+            `Error ${response.status}: Failed to fetch user info`,
+          );
         }
-
         const data = await response.json();
         setUserInfo(data);
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-        // Non-blocking error - we can still continue without autofill info
+      } catch (err) {
+        console.error("Error fetching user info:", err);
       }
     };
 
@@ -80,13 +105,15 @@ const ApplyToForm: React.FC = () => {
       fetchForm();
       fetchUserInfo();
     }
-  }, [formId]);
+  }, [formId, navigate]);
+
+  // ... (rest of the component remains unchanged)
 
   const handleResponseChange = (questionId: number, value: string) => {
-    const newResponses = responses.map(response =>
+    const newResponses = responses.map((response) =>
       response.question_id === questionId
         ? { ...response, answer_text: value }
-        : response
+        : response,
     );
     setResponses(newResponses);
   };
@@ -99,8 +126,7 @@ const ApplyToForm: React.FC = () => {
       return;
     }
 
-    // Check if all required fields are filled
-    const emptyResponses = responses.filter(response => response.answer_text.trim() === "");
+    const emptyResponses = responses.filter((r) => r.answer_text.trim() === "");
     if (emptyResponses.length > 0) {
       setError("Please fill in all fields before submitting.");
       return;
@@ -110,42 +136,31 @@ const ApplyToForm: React.FC = () => {
     setError(null);
 
     try {
-      const payload = {
-        form_id: formId,
-        responses: responses
-      };
-
+      const payload = { form_id: formId, responses };
       const response = await fetch("/api/application/submit-application", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        credentials: "include"
+        credentials: "include",
       });
 
       if (!response.ok) {
-        let errorMessage = `Error ${response.status}`;
+        let message = `Error ${response.status}`;
         try {
-          const errorData = await response.json();
-          errorMessage = errorData.detail || errorMessage;
-        } catch (e) {
-          // Ignore JSON parse errors
-        }
-        throw new Error(errorMessage);
+          const errData = await response.json();
+          message = errData.detail || message;
+        } catch {}
+        throw new Error(message);
       }
 
-      const data = await response.json();
+      await response.json();
       setSuccess("Application submitted successfully!");
-
-      // Navigate to applications list after a short delay
-      setTimeout(() => {
-        navigate(-1);
-      }, 2000);
-
-    } catch (error: any) {
-      console.error("Error submitting application:", error);
-      setError(error.message || "Failed to submit application. Please try again later.");
+      setTimeout(() => navigate(-1), 2000);
+    } catch (err: any) {
+      console.error("Error submitting application:", err);
+      setError(
+        err.message || "Failed to submit application. Please try again later.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -183,11 +198,13 @@ const ApplyToForm: React.FC = () => {
         </h1>
 
         {form.deadline && (
-          <div className={`mb-4 p-3 rounded-md ${
-            isDeadlinePassed ? 
-            "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300" : 
-            "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-          }`}>
+          <div
+            className={`mb-4 p-3 rounded-md ${
+              isDeadlinePassed
+                ? "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
+                : "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+            }`}
+          >
             <p>
               <span className="font-semibold">Deadline:</span>{" "}
               {new Date(form.deadline).toLocaleString()}
@@ -212,7 +229,9 @@ const ApplyToForm: React.FC = () => {
           {form.questions
             .sort((a, b) => (a.question_order || 0) - (b.question_order || 0))
             .map((question) => {
-              const response = responses.find(r => r.question_id === question.id);
+              const response = responses.find(
+                (r) => r.question_id === question.id,
+              );
 
               return (
                 <div key={question.id} className="mb-6">
@@ -225,7 +244,9 @@ const ApplyToForm: React.FC = () => {
                   <textarea
                     id={`question-${question.id}`}
                     value={response?.answer_text || ""}
-                    onChange={(e) => handleResponseChange(question.id, e.target.value)}
+                    onChange={(e) =>
+                      handleResponseChange(question.id, e.target.value)
+                    }
                     className="w-full px-3 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
                     rows={4}
                     disabled={isSubmitting || isDeadlinePassed}
@@ -247,8 +268,9 @@ const ApplyToForm: React.FC = () => {
             <button
               type="submit"
               className={`px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
-                (isSubmitting || isDeadlinePassed) ? 
-                "opacity-50 cursor-not-allowed" : ""
+                isSubmitting || isDeadlinePassed
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
               disabled={isSubmitting || isDeadlinePassed}
             >
