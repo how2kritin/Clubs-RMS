@@ -15,7 +15,7 @@ from models.users.users_model import User
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
 
 
-async def get_batch(roll):
+def get_batch(roll):
     roll = str(roll)
     year = roll[:4]
     rem = roll[4:]
@@ -42,7 +42,10 @@ async def user_login_cas(
     if ticket:
         user, attributes, _ = cas_client.verify_ticket(ticket)
         if user:
-            roll = attributes["RollNo"]
+            try:
+                roll = attributes["RollNo"]
+            except KeyError:
+                roll = attributes['uid']
             email = attributes["E-Mail"]
             first_name = attributes["FirstName"]
             last_name = attributes["LastName"]
