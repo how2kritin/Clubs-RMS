@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 
 from models.applications.applications_config import get_application_autofill_info, process_submitted_application, \
-    get_application_status, update_application_status, endorse_application, delete_application
+    get_application_status, update_application_status, endorse_application, delete_application, get_application_details
 from schemas.applications.applications import ApplicationOut, ApplicationStatusUpdate
 from utils.database_utils import get_db
 
@@ -25,6 +25,12 @@ async def process_submitted_application_endpoint(form_data: dict = Body(...), db
 @router.get("/{application_id}/status")
 async def get_application_status_endpoint(application_id: int, db: Session = Depends(get_db)):
     return await get_application_status(application_id, db)
+
+
+# Get detailed information about a submitted application.
+@router.get("/{application_id}")
+async def get_application_details_endpoint(application_id: int, db: Session = Depends(get_db)):
+    return await get_application_details(application_id, db)
 
 
 # Update status of an application.

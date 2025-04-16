@@ -1,11 +1,15 @@
+from typing import Dict, Any
+
 from fastapi import HTTPException, Depends
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from models.applications.applications_model import Application, ApplicationStatus
+from models.applications.applications_model import Response
 from models.club_recruitment.club_recruitment_model import Form
+from models.club_recruitment.club_recruitment_model import Question
 from models.clubs.clubs_model import club_members
-from schemas.applications.applications import ApplicationStatusUpdate
+from schemas.applications.applications import ApplicationDetailOut, ResponseOut, ApplicationStatusUpdate
 from utils.database_utils import get_db
 from utils.session_utils import get_current_user
 
@@ -68,31 +72,80 @@ async def process_submitted_application(form_data: dict, db: Session = Depends(g
         raise HTTPException(status_code=500, detail=f"Failed to process application: {str(e)}")
 
 
+# check if user has access to application (must've either submitted the application, or belong to the club)
+async def _check_application_access(application_id: int, db: Session) -> Dict[str, Any]:
+    user_data = await get_current_user()
+    user_id = user_data["uid"]
+
+    # fetch application
+    application = db.query(Application).filter(Application.id == application_id).first()
+
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    # check if the current user is the owner of the application or a member of the club the application is submitted to
+    if application.user_id != user_id:
+        form = db.query(Form).filter(Form.id == application.form_id).first()
+
+        if not form:
+            raise HTTPException(status_code=404,
+                                detail="Ran into an issue while fetching the form associated with this application")
+
+        # check if the user is a member of the club
+        club_membership = db.query(club_members).filter(
+            and_(club_members.c.club_id == form.club_id, club_members.c.user_id == user_id)).first()
+
+        if not club_membership:
+            raise HTTPException(status_code=403, detail="You don't have permission to view this application")
+
+    return {"application": application, "user_id": user_id}
+
+
+# get all details about the application
+async def get_application_details(application_id: int, db: Session = Depends(get_db)):
+    try:
+        result = await _check_application_access(application_id, db)
+        application = result["application"]
+
+        form = db.query(Form).filter(Form.id == application.form_id).first()
+
+        if not form:
+            raise HTTPException(status_code=404, detail="Form associated with this application not found")
+
+        responses_data = []
+        responses = db.query(Response).filter(Response.application_id == application.id).all()
+
+        for response in responses:
+            question = db.query(Question).filter(Question.id == response.question_id).first()
+
+            response_out = ResponseOut(id=response.id, question_id=response.question_id,
+                                       answer_text=response.answer_text,
+                                       question_text=question.question_text if question else None,
+                                       question_order=question.question_order if question else None)
+            responses_data.append(response_out)
+
+        responses_data.sort(key=lambda x: (x.question_order or float('inf')))
+
+        application_details = ApplicationDetailOut(id=application.id, form_id=application.form_id,
+                                                   user_id=application.user_id, form_name=form.name,
+                                                   club_id=form.club_id, submitted_at=application.submitted_at,
+                                                   status=application.status, responses=responses_data,
+                                                   endorser_ids=application.endorser_ids if application.endorser_ids else [],
+                                                   endorser_count=len(
+                                                       application.endorser_ids) if application.endorser_ids else 0)
+
+        return application_details
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch application details: {str(e)}")
+
+
 async def get_application_status(application_id: int, db: Session = Depends(get_db)):
     try:
-        user_data = await get_current_user()
-        user_id = user_data["uid"]
-
-        # fetch application
-        application = db.query(Application).filter(Application.id == application_id).first()
-
-        if not application:
-            raise HTTPException(status_code=404, detail="Application not found")
-
-        # check if the current user is the owner of the application or a member of the club the application is submitted to
-        if application.user_id != user_id:
-            form = db.query(Form).filter(Form.id == application.form_id).first()
-
-            if not form:
-                raise HTTPException(status_code=404,
-                                    detail="Ran into an issue while fetching the form associated with this application")
-
-            # check if the user is a member of the club
-            club_membership = db.query(club_members).filter(
-                and_(club_members.c.club_id == form.club_id, club_members.c.user_id == user_id)).first()
-
-            if not club_membership:
-                raise HTTPException(status_code=403, detail="You don't have permission to view this application")
+        result = await _check_application_access(application_id, db)
+        application = result["application"]
 
         # return application status
         return {"id": application.id, "status": application.status.value, "submitted_at": application.submitted_at,
@@ -167,7 +220,7 @@ async def endorse_application(application_id: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail=f"Failed to endorse application: {str(e)}")
 
 
-# Only the user that has submitted this application is allowed to delete it
+# only the user that has submitted this application is allowed to delete it
 async def delete_application(application_id: int, db: Session = Depends(get_db)):
     try:
         user_data = await get_current_user()
