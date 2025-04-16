@@ -2,35 +2,37 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 
 from models.applications.applications_config import get_application_autofill_info, process_submitted_application, \
-    get_application_status, update_application_status, endorse_application, delete_application, get_application_details
+    get_application_status, update_application_status, endorse_application, withdraw_endorsement, delete_application, \
+    get_application_details
 from schemas.applications.applications import ApplicationOut, ApplicationStatusUpdate
 from utils.database_utils import get_db
+from utils.session_utils import get_current_user
 
 router = APIRouter()
 
 
 # Get the information needed to autofill some fields of an application.
-@router.get("/")
-async def get_application_autofill_info_endpoint():
-    return await get_application_autofill_info()
+@router.get("/autofill-details")
+async def get_application_autofill_info_endpoint(user_data = Depends(get_current_user)):
+    return await get_application_autofill_info(user_data)
 
 
 # Process a submitted application.
-@router.post("/")
-async def process_submitted_application_endpoint(form_data: dict = Body(...), db: Session = Depends(get_db)):
-    return await process_submitted_application(form_data, db)
+@router.post("/submit-application")
+async def process_submitted_application_endpoint(form_data: dict = Body(...), db: Session = Depends(get_db), user_info = Depends(get_current_user)):
+    return await process_submitted_application(form_data, db, user_info)
 
 
 # Get the current status of a submitted application.
 @router.get("/{application_id}/status")
-async def get_application_status_endpoint(application_id: int, db: Session = Depends(get_db)):
-    return await get_application_status(application_id, db)
+async def get_application_status_endpoint(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+    return await get_application_status(application_id, db, user_data)
 
 
 # Get detailed information about a submitted application.
 @router.get("/{application_id}")
-async def get_application_details_endpoint(application_id: int, db: Session = Depends(get_db)):
-    return await get_application_details(application_id, db)
+async def get_application_details_endpoint(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+    return await get_application_details(application_id, db, user_data)
 
 
 # Update status of an application.
@@ -49,11 +51,17 @@ async def update_application_status_endpoint(application_id: int, status_update:
 
 # Endorse an application.
 @router.put("/{application_id}/endorse")
-async def endorse_application_endpoint(application_id: int, db: Session = Depends(get_db)):
-    return await endorse_application(application_id, db)
+async def endorse_application_endpoint(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+    return await endorse_application(application_id, db, user_data)
+
+
+# Withdraw endorsement from an application.
+@router.put("/{application_id}/withdraw-endorsement")
+async def withdraw_endorsement_endpoint(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+    return await withdraw_endorsement(application_id, db, user_data)
 
 
 # Delete an application.
 @router.delete("/{application_id}")
-async def delete_application_endpoint(application_id: int, db: Session = Depends(get_db)):
-    return await delete_application(application_id, db)
+async def delete_application_endpoint(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+    return await delete_application(application_id, db, user_data)

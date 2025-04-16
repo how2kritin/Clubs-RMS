@@ -14,10 +14,8 @@ from utils.database_utils import get_db
 from utils.session_utils import get_current_user
 
 
-async def get_application_autofill_info():
+async def get_application_autofill_info(user_data = Depends(get_current_user)):
     try:
-        user_data = await get_current_user()
-
         return {"user_id": user_data["uid"], "first_name": user_data["first_name"], "last_name": user_data["last_name"],
                 "email": user_data["email"], "roll_number": user_data["roll_number"], "hobbies": user_data["hobbies"],
                 "skills": user_data["skills"], "batch": user_data["batch"]}
@@ -27,9 +25,8 @@ async def get_application_autofill_info():
         raise HTTPException(status_code=500, detail=f"Failed to retrieve user information: {str(e)}")
 
 
-async def process_submitted_application(form_data: dict, db: Session = Depends(get_db)):
+async def process_submitted_application(form_data: dict, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
     try:
-        user_data = await get_current_user()
         user_id = user_data["uid"]
 
         form_id = form_data.get("form_id")
@@ -73,8 +70,7 @@ async def process_submitted_application(form_data: dict, db: Session = Depends(g
 
 
 # check if user has access to application (must've either submitted the application, or belong to the club)
-async def _check_application_access(application_id: int, db: Session) -> Dict[str, Any]:
-    user_data = await get_current_user()
+async def _check_application_access(application_id: int, db: Session, user_data = Depends(get_current_user)) -> Dict[str, Any]:
     user_id = user_data["uid"]
 
     # fetch application
@@ -102,9 +98,9 @@ async def _check_application_access(application_id: int, db: Session) -> Dict[st
 
 
 # get all details about the application
-async def get_application_details(application_id: int, db: Session = Depends(get_db)):
+async def get_application_details(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
     try:
-        result = await _check_application_access(application_id, db)
+        result = await _check_application_access(application_id, db, user_data)
         application = result["application"]
 
         form = db.query(Form).filter(Form.id == application.form_id).first()
@@ -142,9 +138,9 @@ async def get_application_details(application_id: int, db: Session = Depends(get
         raise HTTPException(status_code=500, detail=f"Failed to fetch application details: {str(e)}")
 
 
-async def get_application_status(application_id: int, db: Session = Depends(get_db)):
+async def get_application_status(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
     try:
-        result = await _check_application_access(application_id, db)
+        result = await _check_application_access(application_id, db, user_data)
         application = result["application"]
 
         # return application status
@@ -170,9 +166,8 @@ async def update_application_status(db: Session, application_id: int, status_upd
 
 
 # if the current user is a member of this club, they can endorse the application.
-async def endorse_application(application_id: int, db: Session = Depends(get_db)):
+async def endorse_application(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
     try:
-        user_data = await get_current_user()
         user_id = user_data["uid"]
 
         # Fetch application
@@ -220,10 +215,38 @@ async def endorse_application(application_id: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail=f"Failed to endorse application: {str(e)}")
 
 
-# only the user that has submitted this application is allowed to delete it
-async def delete_application(application_id: int, db: Session = Depends(get_db)):
+async def withdraw_endorsement(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
     try:
-        user_data = await get_current_user()
+        result = await _check_application_access(application_id, db, user_data)
+        application = result["application"]
+        user_id = result["user_id"]
+
+        # check if the application is no longer in "ongoing" status
+        if application.status != ApplicationStatus.ongoing:
+            raise HTTPException(status_code=400, detail="Can only withdraw endorsements for ongoing applications")
+
+        # check if user has endorsed this application
+        if user_id not in application.endorser_ids:
+            raise HTTPException(status_code=400, detail="You have not endorsed this application")
+
+        # remove user from endorsers
+        application.endorser_ids.remove(user_id)
+
+        db.commit()
+        db.refresh(application)
+
+        return {"id": application.id, "status": application.status.value,
+                "endorser_count": len(application.endorser_ids) if application.endorser_ids else 0}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to withdraw endorsement: {str(e)}")
+
+
+# only the user that has submitted this application is allowed to delete it
+async def delete_application(application_id: int, db: Session = Depends(get_db), user_data = Depends(get_current_user)):
+    try:
         user_id = user_data["uid"]
 
         application = db.query(Application).filter(Application.id == application_id).first()

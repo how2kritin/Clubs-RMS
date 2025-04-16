@@ -14,6 +14,7 @@ import ClubForms from "./pages/ClubForms.tsx";
 import FormView from "./pages/FormView.tsx";
 import RecommendationsPage from "./pages/RecommendationsPage.tsx";
 import ClubsPage from "./pages/ClubsPage.tsx";
+import ApplyToForm from "./pages/applications/ApplyToForm.tsx";
 
 // ProtectedRoute component to guard private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -66,7 +67,7 @@ export const CreateRouter = () => {
       )
     },
     {
-      path: "/recommendations", // <-- Add the route definition
+      path: "/recommendations",
       element: (
         <ProtectedRoute>
           <PageLayout customPage={RecommendationsPage} />
@@ -102,6 +103,14 @@ export const CreateRouter = () => {
       element: (
         <ProtectedRoute>
           <PageLayout customPage={FormView} />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/apply/:formId",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={ApplyToForm} />
         </ProtectedRoute>
       ),
     },
