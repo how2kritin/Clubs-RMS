@@ -67,3 +67,13 @@ app.include_router(
     prefix="/api/recruitment",
     tags=["Club Recruitment Management"],
 )
+app.include_router(
+    recommendations_router.router,
+    prefix="/api",
+    tags=["Recommendations"],
+)
+app.include_router(
+    interviews_router.router,
+    prefix="/api/interviews",
+    tags=["Interview Scheduling"],
+)
