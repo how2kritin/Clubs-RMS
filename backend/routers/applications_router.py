@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 
 from models.applications.applications_config import get_application_autofill_info, process_submitted_application, \
@@ -17,14 +17,14 @@ async def get_application_autofill_info_endpoint():
 
 # Process a submitted application.
 @router.post("/")
-async def process_submitted_application_endpoint():
-    return await process_submitted_application()
+async def process_submitted_application_endpoint(form_data: dict = Body(...), db: Session = Depends(get_db)):
+    return await process_submitted_application(form_data, db)
 
 
 # Get the current status of a submitted application.
 @router.get("/{application_id}/status")
-async def get_application_status_endpoint(application_id: int):
-    return await get_application_status()
+async def get_application_status_endpoint(application_id: int, db: Session = Depends(get_db)):
+    return await get_application_status(application_id, db)
 
 
 # Update status of an application.
@@ -43,11 +43,11 @@ async def update_application_status_endpoint(application_id: int, status_update:
 
 # Endorse an application.
 @router.put("/{application_id}/endorse")
-async def endorse_application_endpoint(application_id: int):
-    return await endorse_application()
+async def endorse_application_endpoint(application_id: int, db: Session = Depends(get_db)):
+    return await endorse_application(application_id, db)
 
 
 # Delete an application.
 @router.delete("/{application_id}")
-async def delete_application_endpoint(application_id: int):
-    return await delete_application()
+async def delete_application_endpoint(application_id: int, db: Session = Depends(get_db)):
+    return await delete_application(application_id, db)

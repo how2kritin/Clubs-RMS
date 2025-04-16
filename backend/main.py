@@ -3,12 +3,11 @@ from os import getenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# just import whatever routers you want to import from ./routers here.
-
-from routers import recommendations_router, interviews_router, users_router, recruitment_router, clubs_router, applications_router
 from models.clubs.clubs_sync import sync_clubs
+# just import whatever routers you want to import from ./routers here.
+from routers import recommendations_router, interviews_router, users_router, recruitment_router, clubs_router, \
+    applications_router, calendar_router
 from utils.database_utils import SessionLocal, init_db
-from utils.database_utils import reset_db, SessionLocal
 
 # FastAPI instance here, along with CORS middleware
 DEBUG = getenv("DEBUG_BACKEND", "False").lower() in ("true", "t", "1")
@@ -21,7 +20,7 @@ app.add_middleware(CORSMiddleware, allow_credentials=True, allow_origins=["*"], 
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    reset_db() # TODO: check
+    init_db()
     db = SessionLocal()
 
     # sync clubs data from Clubs Council API
@@ -42,14 +41,6 @@ app.include_router(users_router.router, prefix="/api/user", tags=["User Manageme
 app.include_router(clubs_router.router, prefix="/api/club", tags=["Club Management"])
 app.include_router(applications_router.router, prefix="/api/application", tags=["Application Management"], )
 app.include_router(recruitment_router.router, prefix="/api/recruitment", tags=["Club Recruitment Management"], )
-app.include_router(
-    recommendations_router.router,
-    prefix="/api",
-    tags=["Recommendations"],
-)
-app.include_router(
-    interviews_router.router,
-    prefix="/api/interviews",
-    tags=["Interview Scheduling"],
-)
 app.include_router(calendar_router.router, prefix="/api/calendar", tags=["Events Calendar"], )
+app.include_router(recommendations_router.router, prefix="/api", tags=["Recommendations"], )
+app.include_router(interviews_router.router, prefix="/api/interviews", tags=["Interview Scheduling"], )
