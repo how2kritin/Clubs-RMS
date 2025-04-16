@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Type
 
 from fastapi import HTTPException
@@ -13,6 +14,15 @@ from schemas.form.form import FormCreate, FormUpdate
 
 
 async def create_form(db: Session, form_data: FormCreate) -> Form:
+    # raise an exception if deadline is in the past
+    if form_data.deadline and (
+        form_data.deadline < datetime.datetime.now((datetime.timezone.utc))
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="deadline must be in the future",
+        )
+
     db_form = Form(
         name=form_data.name, club_id=form_data.club_id, deadline=form_data.deadline
     )
