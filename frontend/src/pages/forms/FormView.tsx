@@ -283,12 +283,14 @@ function FormView() {
             >
               {isDeadlinePassed ? "Deadline Passed" : "Apply to Form"}
             </button>
-            <button
-              className="edit-form-btn"
-              onClick={() => setIsEditing(true)}
-            >
-              Edit Form
-            </button>
+            {(isClubAdmin || isClubMember) && (
+              <button
+                className="edit-form-btn"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Form
+              </button>
+            )}
             {isClubAdmin && (
               <button onClick={handleDelete} className="delete-btn">
                 Delete Form
