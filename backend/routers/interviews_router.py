@@ -53,11 +53,17 @@ async def schedule_interviews(
     # create club with uid
     from models.clubs.clubs_model import Club
 
-    club = Club(cid=cur_user["uid"], name="Interview Club")
-    db.add(club)
-    db.commit()
-    db.refresh(club)
-    print("Club created successfully")
+    exisiting_club = db.query(Club).filter(Club.cid == cur_user["uid"]).first()
+    if exisiting_club:
+        print("Club already exists")
+        club = exisiting_club
+    else:
+        print("Creating club")
+        club = Club(cid=cur_user["uid"], name="Interview Club")
+        db.add(club)
+        db.commit()
+        db.refresh(club)
+        print("Club created successfully")
 
     # TODO: remove when testing is done
     # TODO: get the form ID from the form data

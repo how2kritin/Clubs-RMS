@@ -39,8 +39,9 @@ async def schedule_interviews(
     print(club_ids)
 
     # get events the user can see
-    # - if the visible field is their uid
-    # if the club field is of a club they are a member of
+    # if the visible field is their uid
+    # or if the club field is of a club they are a member of
+    # or if the user is the club account
     events = list(
         event.to_dict()
         for event in db.query(CalendarEvent)
@@ -48,6 +49,7 @@ async def schedule_interviews(
             or_(
                 CalendarEvent.visible_to_user == cur_user["uid"],
                 CalendarEvent.club_id.in_(club_ids),
+                CalendarEvent.club_id == cur_user["uid"],
             )
         )
         .all()
