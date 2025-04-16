@@ -277,9 +277,10 @@ def allocate_calendar_events(
                     visible_to_user=application.user_id,
                     club_id=club_id,
                     type=CalendarEventType.interview,
-                    title=f"Interview for {application.user_id} for club {club_id} for form {form_id}",
+                    title=f"Interview for {application.user_id} for club {club_id} for form {form_id} with panel {panel_id}",
                     start_time=interview_slot.start_time,
                     end_time=interview_slot.end_time,
+                    date=interview_slot.date,
                 )
                 db.add(calendar_event)
                 db.commit()

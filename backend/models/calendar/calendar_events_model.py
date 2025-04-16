@@ -1,6 +1,9 @@
 import enum
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Time
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Time, Date
 from sqlalchemy.orm import relationship
+
+
 from utils.database_utils import Base
 
 
@@ -77,4 +80,24 @@ class CalendarEvent(Base):
     # description = Column(String, nullable=True)
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
+    date = Column(Date, nullable=False)
     # location = Column(String, nullable=True)
+
+    @property
+    def start(self):
+        return datetime.combine(self.date, self.start_time).isoformat()
+
+    @property
+    def end(self):
+        if self.end_time:
+            return datetime.combine(self.date, self.end_time).isoformat()
+        return None
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "start": self.start,
+            "end": self.end,
+            "color": "#00FF00",  # green
+        }

@@ -20,6 +20,7 @@ const Navbar = () => {
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/profile', label: 'Profile' },
     { path: '/clubs', label: 'Clubs' },
+    { path: '/calendar', label: 'Calendar' },
   ];
 
     // Only render the Navbar if the user is logged in

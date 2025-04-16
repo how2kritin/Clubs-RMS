@@ -85,12 +85,14 @@ async def schedule_interviews(
     # create applications
     from models.applications.applications_model import Application
     from models.users.users_model import User
+
     for uid in [
         "varun.edachali",
+        "samyak.mishra",
         "shaunak.biswas",
         "ashutosh.rudrabhatla",
         "kritin.madireddy",
-        "vamsi.krishna",
+        # "vamsi.krishna",
     ]:
         exisiting_user = db.query(User).filter(User.uid == uid).first()
         if exisiting_user:

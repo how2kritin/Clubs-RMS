@@ -3,10 +3,11 @@ from os import getenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# just import whatever routers you want to import from ./routers here.
 import routers.applications_router as applications_router
 import routers.clubs_router as clubs_router
 import routers.recruitment_router as recruitment_router
-# just import whatever routers you want to import from ./routers here.
+import routers.calendar_router as calendar_router
 import routers.users_router as users_router
 
 from models.clubs.clubs_sync import sync_clubs
@@ -46,4 +47,5 @@ app.include_router(users_router.router, prefix="/api/user", tags=["User Manageme
 app.include_router(clubs_router.router, prefix="/api/club", tags=["Club Management"])
 app.include_router(applications_router.router, prefix="/api/application", tags=["Application Management"], )
 app.include_router(recruitment_router.router, prefix="/api/recruitment", tags=["Club Recruitment Management"], )
+app.include_router(calendar_router.router, prefix="/api/calendar", tags=["Events Calendar"], )
 app.include_router(interviews_router.router, prefix="/api/interviews", tags=["Interview Scheduling"], )
