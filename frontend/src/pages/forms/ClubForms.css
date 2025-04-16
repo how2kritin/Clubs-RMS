@@ -75,3 +75,27 @@
   color: #e53935;
   text-align: center;
 }
+
+/* Flex container for top buttons */
+.create-form-button {
+  display: block;
+  margin: 0 auto 1.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  background-color: #0736df;
+  color: #fff;
+}
+
+.create-form-button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.create-form-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

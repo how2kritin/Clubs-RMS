@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import "./ClubForms.css";
 
 interface FormSummary {
@@ -9,8 +9,10 @@ interface FormSummary {
 
 function ClubForms() {
   const { clubId } = useParams<{ clubId: string }>();
+  const navigate = useNavigate();
   const [forms, setForms] = useState<FormSummary[]>([]);
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,21 +23,38 @@ function ClubForms() {
     fetch(`/api/recruitment/forms/club/${clubId}`)
       .then((res) => res.json())
       .then(setForms)
-      .catch((err) => setError("Failed to load forms"))
+      .catch(() => setError("Failed to load forms"))
       .finally(() => setLoading(false));
   }, [clubId]);
 
-  // Fetch subscription status
+  // Fetch subscription status and role
   useEffect(() => {
     if (!clubId) return;
-    fetch(`/api/club/is_subscribed/${clubId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Not authorized");
-        return res.json();
-      })
-      .then((status: boolean) => setIsSubscribed(status))
-      .catch(() => setError("Failed to load subscription status"))
-      .finally(() => setLoading(false));
+
+    const fetchAll = async () => {
+      try {
+        const [subRes, roleRes] = await Promise.all([
+          fetch(`/api/club/is_subscribed/${clubId}`),
+          fetch(`/api/user/user_role/${clubId}`),
+        ]);
+
+        if (!subRes.ok || !roleRes.ok) throw new Error("Failed");
+
+        const [subscribed, roleData] = await Promise.all([
+          subRes.json(),
+          roleRes.json(),
+        ]);
+
+        setIsSubscribed(subscribed);
+        setIsAdmin(roleData.is_admin || false);
+      } catch {
+        setError("Failed to load user info");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
   }, [clubId]);
 
   const toggleSubscription = useCallback(async () => {
@@ -61,23 +80,32 @@ function ClubForms() {
   return (
     <div className="club-forms">
       <h2>Forms for Club {clubId}</h2>
+      <div className="button-row">
+        <button
+          className={`subscribe-button ${
+            isSubscribed ? "unsubscribe" : "subscribe"
+          }`}
+          onClick={toggleSubscription}
+          disabled={actionLoading}
+        >
+          {actionLoading
+            ? isSubscribed
+              ? "Unsubscribing..."
+              : "Subscribing..."
+            : isSubscribed
+              ? "Unsubscribe"
+              : "Subscribe"}
+        </button>
 
-      <button
-        className={`subscribe-button ${
-          isSubscribed ? "unsubscribe" : "subscribe"
-        }`}
-        onClick={toggleSubscription}
-        disabled={actionLoading}
-      >
-        {actionLoading
-          ? isSubscribed
-            ? "Unsubscribing..."
-            : "Subscribing..."
-          : isSubscribed
-            ? "Unsubscribe"
-            : "Subscribe"}
-      </button>
-
+        {isAdmin && (
+          <button
+            className="create-form-button"
+            onClick={() => navigate(`/create_form/${clubId}`)}
+          >
+            Create Form
+          </button>
+        )}
+      </div>
       {forms.length > 0 ? (
         <ul className="forms-list">
           {forms.map((form) => (
