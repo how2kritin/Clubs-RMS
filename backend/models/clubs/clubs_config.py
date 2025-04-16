@@ -79,3 +79,14 @@ async def unsubscribe(cid: str, uid: str, db: Session):
     db.refresh(club)
 
     return club
+
+
+def get_all_subscribers(db: Session, cid: str):
+    club = db.query(Club).filter(Club.cid == cid).first()
+    if club is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Club not found"
+        )
+
+    subscribers = club.subscribers
+    return subscribers

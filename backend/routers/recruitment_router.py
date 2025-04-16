@@ -9,8 +9,10 @@ from models.club_recruitment.club_recruitment_config import (
     get_form_applicant_emails,
     get_form_by_id,
     get_forms_by_club,
+    inform_users,
     update_form,
 )
+from models.clubs.clubs_config import get_all_subscribers
 from models.users.users_config import is_admin_of_club, is_member_of_club
 from schemas.form.form import FormCreate, FormOut, FormUpdate
 from utils.database_utils import get_db
@@ -19,7 +21,7 @@ from utils.session_utils import SESSION_COOKIE_NAME, get_current_user
 router = APIRouter()
 
 
-@router.post("/forms", response_model=FormOut, status_code=status.HTTP_201_CREATED)
+@router.post("/forms", status_code=status.HTTP_201_CREATED, response_model=FormOut)
 async def create_new_form(
     form_data: FormCreate,
     encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
@@ -33,6 +35,15 @@ async def create_new_form(
                 detail="You are not authorized to create a form for this club.",
             )
         new_form = await create_form(db, form_data)
+
+        subject = f"New Hiring Round Created: {new_form.name}"
+        content = (
+            f"A new hiring round has been created by the club {new_form.club_id}.\n"
+            + "head to clubs-plus-plus to see more!\n"
+        )
+
+        subscribers = get_all_subscribers(db, new_form.club_id)  # type: ignore
+        inform_users(subscribers, subject, content)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return new_form
@@ -79,6 +90,15 @@ async def update_existing_form(
             )
 
         updated_form = await update_form(db, form_id, form_data)
+
+        subject = f"Hiring Round Updated: {updated_form.name}"
+        content = (
+            f"hiring round {updated_form.name} has been updated by the club {updated_form.club_id}.\n"
+            + "head to clubs-plus-plus to see more!\n"
+        )
+
+        subscribers = get_all_subscribers(db, updated_form.club_id)  # type: ignore
+        inform_users(subscribers, subject, content)
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -103,8 +123,16 @@ async def delete_existing_form(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You are not authorized to create a form for this club.",
             )
+        subscribers = get_all_subscribers(db, form.club_id)  # type: ignore
 
         await delete_form(db, form_id)
+
+        subject = f"Hiring Round to be Deleted: {form.name}"
+        content = (
+            f"hiring round {form.name} will be deleted by the club {form.club_id}.\n"
+        )
+
+        inform_users(subscribers, subject, content)
     except HTTPException as e:
         raise e
     except Exception as e:
