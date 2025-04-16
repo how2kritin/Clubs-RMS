@@ -1,6 +1,8 @@
-from sqlalchemy import Boolean, Column, Integer, String, event
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.postgresql import JSON
+
 from utils.database_utils import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -11,7 +13,6 @@ class User(Base):
     last_name = Column(String)
     roll_number = Column(String, unique=True, index=True)
     hobbies = Column(String, nullable=True)
-    skills = Column(JSON, nullable=True) 
+    skills = Column(JSON, nullable=True)
     batch = Column(String, nullable=True)
-    profile_picture = Column(Integer, nullable=True)  
-
+    profile_picture = Column(Integer, nullable=True)

@@ -29,14 +29,11 @@ def get_db():
 # util to drop all tables (do not recreate them). returns true if successful, false if it fails.
 def drop_all_tables() -> bool:
     try:
-        # Get inspector to check existing tables
         inspector = inspect(engine)
         tables = inspector.get_table_names()
 
-        # Log the tables that will be dropped
         logger.warning(f"Dropping {len(tables)} tables: {', '.join(tables)}")
 
-        # Drop all tables defined in the metadata
         Base.metadata.drop_all(bind=engine)
 
         logger.info("All tables dropped successfully")
@@ -49,12 +46,11 @@ def drop_all_tables() -> bool:
 # reset the database by dropping all tables and recreating them.
 def reset_db():
     try:
-        # Drop all tables
         success = drop_all_tables()
         if not success:
             return False
 
-        # Recreate all tables
+        # recreate all tables
         init_db()
 
         logger.info("Database reset successfully")

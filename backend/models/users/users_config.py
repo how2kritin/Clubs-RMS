@@ -15,7 +15,7 @@ from models.users.users_model import User
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
 
 
-def get_batch(roll):
+async def get_batch(roll):
     roll = str(roll)
     year = roll[:4]
     rem = roll[4:]
@@ -88,7 +88,7 @@ async def user_logout(response: Response, encrypted_session_id: str, db: Session
     return {"message": "Logged out successfully"}
 
 
-def get_clubs_by_user(user_id: str, db: Session):
+async def get_clubs_by_user(user_id: str, db: Session):
     user = db.query(User).filter(User.uid == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

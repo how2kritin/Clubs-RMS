@@ -24,13 +24,8 @@ def create_session(user_uid: str, user_agent: str, ip_address: str, db: Session)
     # expiry time
     expires_at = datetime.now(timezone("UTC")) + timedelta(days=SESSION_EXPIRY_DAYS)
 
-    session = SessionModel(
-        id=session_id,
-        user_uid=user_uid,
-        expires_at=expires_at,
-        user_agent=user_agent,
-        ip_address=ip_address,
-    )
+    session = SessionModel(id=session_id, user_uid=user_uid, expires_at=expires_at, user_agent=user_agent,
+        ip_address=ip_address, )
     db.add(session)
     db.commit()
 
@@ -70,26 +65,16 @@ def validate_session(encrypted_session_id: str, db: Session):
         return None, None
 
     # return user data and original encrypted session ID
-    user_data = {
-        "uid": user.uid,
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "roll_number": user.roll_number,
-        "hobbies": user.hobbies,
-        "skills": user.skills,
-        "batch": user.batch,
-        "profile_picture": user.profile_picture
-    }
+    user_data = {"uid": user.uid, "email": user.email, "first_name": user.first_name, "last_name": user.last_name,
+        "roll_number": user.roll_number, "hobbies": user.hobbies, "skills": user.skills, "batch": user.batch,
+        "profile_picture": user.profile_picture}
 
     return user_data, session_id
 
 
 # get current user's details
-async def get_current_user(
-    encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
-    db: Session = Depends(get_db),
-):
+async def get_current_user(encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
+        db: Session = Depends(get_db), ):
     user_data, _ = validate_session(encrypted_session_id, db)
 
     if user_data is None:
@@ -99,10 +84,8 @@ async def get_current_user(
 
 
 # check if the current user is logged in. If yes, return the decrypted session id.
-async def check_current_user(
-    encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
-    db: Session = Depends(get_db),
-):
+async def check_current_user(encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
+        db: Session = Depends(get_db), ):
     _, session_id = validate_session(encrypted_session_id, db)
     return session_id
 

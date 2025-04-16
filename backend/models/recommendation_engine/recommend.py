@@ -11,7 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError # Import specific DB errors
 # Import your actual models and schemas
 from models.users.users_model import User # Import your actual User model
 from models.clubs.clubs_model import Club
-from schemas.clubs.clubs import ClubResponse
+from schemas.clubs.clubs import ClubOut
 
 # --- Environment Variable Loading & Gemini Config (Keep as before) ---
 logging.basicConfig(level=logging.INFO)
@@ -170,6 +170,6 @@ async def generate_club_recommendations(user_id: str, db: Session) -> List[Club]
         # Consider raising HTTPException here
         return []
 
-    # 6. Return the list of Club objects. FastAPI handles conversion to ClubResponse.
+    # 6. Return the list of Club objects. FastAPI handles conversion to ClubOut.
     logger.info(f"Returning {len(ordered_recommended_clubs)} recommendations for user {user_id}.")
     return ordered_recommended_clubs

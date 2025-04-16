@@ -4,7 +4,7 @@ from fastapi import status
 
 
 async def fetch_info_about_all_clubs(db: Session):
-    clubs = db.query(Club).all()
+    clubs = db.query(Club).order_by(Club.name).all()
     return clubs
 
 

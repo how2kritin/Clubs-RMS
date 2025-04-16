@@ -1,7 +1,7 @@
 // src/pages/RecommendationsPage.tsx
 import React, { useState, useEffect } from 'react';
 
-// Optional: Define a type for the club data based on your ClubResponse schema
+// Optional: Define a type for the club data based on your ClubOut schema
 interface ClubRecommendation {
   cid: string;
   name: string;
