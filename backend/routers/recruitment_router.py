@@ -69,7 +69,10 @@ async def update_existing_form(
         if not form:
             raise HTTPException(status_code=404, detail="Form not found")
 
-        if not is_member_of_club(user["uid"], form.club_id, db):  # type: ignore
+        if not (
+            is_member_of_club(user["uid"], form.club_id, db)  # type: ignore
+            or is_admin_of_club(user["uid"], form.club_id, db)  # type: ignore
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You are not authorized to create a form for this club.",
