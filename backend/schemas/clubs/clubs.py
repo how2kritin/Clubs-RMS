@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class ClubResponse(BaseModel):
+class ClubOut(BaseModel):
     cid: str
     name: str
     category: Optional[str] = None
