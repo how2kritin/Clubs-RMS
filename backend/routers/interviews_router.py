@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/schedule_interviews", status_code=status.HTTP_200_OK)
 async def schedule_interviews(encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
-        db: Session = Depends(get_db), form_data: ScheduleInterviewFormResponseStr = Body(...), ):
+                              db: Session = Depends(get_db), form_data: ScheduleInterviewFormResponseStr = Body(...), ):
     print("Received interview schedule data:")
     print(json.dumps(form_data.model_dump(), indent=2))
 
@@ -26,7 +26,7 @@ async def schedule_interviews(encrypted_session_id: str = Cookie(None, alias=SES
         print(form_data_parsed)
     except ValueError as e:
         raise HTTPException(status_code=400,
-            detail="Invalid time slots: overlapping intervals detected. Please enter correct time slots.", )
+                            detail="Invalid time slots: overlapping intervals detected. Please enter correct time slots.", )
 
     # calculate interview slots and create slots, panels and a schedule
     interview_slots = calculate_interview_slots(form_data_parsed)
@@ -44,8 +44,9 @@ async def schedule_interviews(encrypted_session_id: str = Cookie(None, alias=SES
     db.refresh(form)
 
     schedule_id, slot_ids, panel_ids = create_schedule(club_id=cur_user["uid"], form_id=form_id, slots=interview_slots,
-        slot_length=form_data_parsed.interviewSchedule.slotDurationMinutes,
-        num_panels=form_data_parsed.interviewSchedule.interviewPanelCount, db=db, )
+                                                       slot_length=form_data_parsed.interviewSchedule.slotDurationMinutes,
+                                                       num_panels=form_data_parsed.interviewSchedule.interviewPanelCount,
+                                                       db=db, )
     print("Interview schedule created successfully")
     print(schedule_id, slot_ids, panel_ids)
 
