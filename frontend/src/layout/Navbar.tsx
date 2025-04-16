@@ -45,7 +45,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="bg-gray-100 dark:bg-blue-900 p-4">
+        <nav className="bg-gray-100 dark:bg-gray-900 p-4">
             <div className="container mx-auto flex justify-between items-center">
                 <div className="flex gap-6 justify-center flex-grow">  {/* Added flex-grow to navLinks div */}
                     {navRoutes.map((route) => (
@@ -57,9 +57,9 @@ const Navbar = () => {
                             <Link to={route.path} className={`
                                 text-black dark:text-gray-200
                                 hover:text-white dark:hover:text-white
-                                hover:bg-gray-500 dark:hover:bg-gray-500
+                                hover:bg-gray-500 dark:hover:bg-gray-800
                                 px-4 py-3 rounded-md
-                                ${activePath === route.path ? 'bg-gray-500 dark:bg-gray-500 text-white dark:text-white' : ''}
+                                ${activePath === route.path ? 'bg-gray-500 dark:bg-gray-800 text-white dark:text-white' : ''}
                                 transition-colors duration-200
                             `}>
                                 {route.label}
