@@ -4,16 +4,14 @@ import logging
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from sqlalchemy.orm import Session, joinedload # Import joinedload for eager loading
-from sqlalchemy import func, desc # For popularity query
+from sqlalchemy.orm import Session
+from sqlalchemy import func, desc
 
-# Import your models (adjust paths if necessary)
 from models.users.users_model import User
 from models.clubs.clubs_model import Club, club_members
 
 logger = logging.getLogger(__name__)
 
-# --- Strategy Interface ---
 
 class RecommendationStrategy(ABC):
     """
@@ -50,8 +48,6 @@ Return ONLY a comma-separated list of the Club IDs (e.g., 'coding,art,music') fo
 Do not include any other text, explanation, headers, or formatting. Just the comma-separated IDs.
 If no clubs seem like a good fit, return an empty string.
 """
-
-# --- Concrete Strategies ---
 
 class HobbiesSkillsStrategy(RecommendationStrategy):
     """
@@ -149,14 +145,13 @@ class PopularClubsStrategy(RecommendationStrategy):
         profile_lines = [f"User Profile for {user.first_name} (ID: {user.uid}):"]
         if user.batch:
             profile_lines.append(f"- Batch: {user.batch}")
-        # Add any other generic info if useful
         profile_str = "\n".join(profile_lines)
 
         clubs_str = self._format_club_list(all_clubs)
         instructions = self._get_base_instructions()
 
         prompt = f"""
-Recommend generally popular or suitable clubs for the following user from the available list. Consider their batch if provided.
+Recommend generally popular or suitable clubs for the following user from the available list. Think about clubs that might be broadly appealing or relevant given the user's batch (if provided), or clubs you have recommended in previous prompts.
 
 {profile_str}
 

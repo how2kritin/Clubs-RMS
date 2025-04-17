@@ -12,7 +12,7 @@ from models.users.users_model import User
 from models.clubs.clubs_model import Club
 from schemas.clubs.clubs import ClubOut
 
-from .strategies import ( # Use relative import if in the same directory
+from .strategies import ( 
     RecommendationStrategy,
     HobbiesSkillsStrategy,
     CurrentClubsStrategy,
@@ -36,14 +36,13 @@ else:
         logger.error(f"Failed to configure Gemini API: {e}")
 
 async def get_recommendations_from_gemini(prompt: str) -> List[str]:
-    # (Implementation from previous answer - no changes needed here)
     if not gemini_model:
         logger.error("Gemini model not initialized. Cannot get recommendations.")
         return []
     recommended_cids = []
     try:
         logger.info("Sending request to Gemini API...")
-        safety_settings=[ # Adjust safety settings as needed
+        safety_settings=[ 
              {"category": "HARM_CATEGORY_HARASSMENT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
              {"category": "HARM_CATEGORY_HATE_SPEECH","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
              {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
@@ -74,7 +73,7 @@ class RecommendationContext:
         self._user = user
         self._db = db
         self._strategy: RecommendationStrategy = self._select_strategy()
-        self._all_clubs: Optional[List[Club]] = None # Cache fetched clubs
+        self._all_clubs: Optional[List[Club]] = None 
 
     def _select_strategy(self) -> RecommendationStrategy:
         """Selects the appropriate strategy based on user data."""
@@ -87,7 +86,7 @@ class RecommendationContext:
         # Check 2: Current Clubs present?
         # Accessing user.clubs might trigger a lazy load if not eager loaded before.
         # It's better to eager load when fetching the user initially.
-        if self._user.clubs: # Check if the list is not empty
+        if self._user.clubs: 
             logger.debug(f"Selecting CurrentClubsStrategy for user {self._user.uid}")
             return CurrentClubsStrategy()
 
@@ -105,7 +104,7 @@ class RecommendationContext:
                     self._all_clubs = []
             except SQLAlchemyError as e:
                 logger.error(f"Database error fetching all clubs: {e}", exc_info=True)
-                self._all_clubs = [] # Return empty list on error
+                self._all_clubs = [] 
         return self._all_clubs
 
     async def get_recommendations(self) -> List[Club]:
@@ -114,9 +113,8 @@ class RecommendationContext:
         """
         all_clubs = self._fetch_all_clubs()
         if not all_clubs:
-            return [] # No clubs to recommend from
+            return [] 
 
-        # Generate prompt using the selected strategy
         prompt = self._strategy.generate_prompt(self._user, all_clubs, self._db)
 
         if not prompt:
@@ -125,20 +123,16 @@ class RecommendationContext:
 
         logger.debug(f"Generated Prompt for Gemini (User: {self._user.uid}, Strategy: {self._strategy.__class__.__name__}):\n{prompt}")
 
-        # Get recommended CIDs from Gemini APIget_recommendations
         recommended_cids = await get_recommendations_from_gemini(prompt)
         if not recommended_cids:
             logger.info(f"No recommendations received from Gemini for user {self._user.uid}.")
             return []
 
-        # Fetch full Club objects for the recommended CIDs
         try:
-            # Ensure CIDs are actually strings if needed
             valid_cids = [str(cid) for cid in recommended_cids]
             recommended_clubs_query = self._db.query(Club).filter(Club.cid.in_(valid_cids))
             recommended_clubs_list = recommended_clubs_query.all()
 
-            # Optional: Preserve the order returned by Gemini
             recommended_clubs_dict = {club.cid: club for club in recommended_clubs_list}
             ordered_recommended_clubs = [recommended_clubs_dict[cid] for cid in valid_cids if cid in recommended_clubs_dict]
 
