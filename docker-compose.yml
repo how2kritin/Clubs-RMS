@@ -12,7 +12,7 @@ services:
       - ./blob/envs/.env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@blob-postgres:5432/rms_db
-      - HABITS_URL=http://habits-backend:1238/api
+      - HABITS_URL=http://habits-backend:1238/habits
     depends_on:
       blob-postgres:
         condition: service_healthy

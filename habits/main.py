@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # just import whatever routers you want to import from ./routers here.
 from routers import habits_router
+from routers import recommendations_router
 from utils.database_utils import SessionLocal, init_db, reset_db
 
 # FastAPI instance here, along with CORS middleware
@@ -27,7 +28,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    init_db()
+    reset_db()
     db = SessionLocal()
     db.close()
 
@@ -41,4 +42,5 @@ async def index():
 
 
 # mount the imported routers on a path here.
-app.include_router(habits_router.router, prefix="/api")
+app.include_router(habits_router.router, prefix="/habits")
+app.include_router(recommendations_router.router, prefix="/recommendations")

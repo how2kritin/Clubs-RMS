@@ -1,5 +1,5 @@
 // src/pages/RecommendationsPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 // Optional: Define a type for the club data based on your ClubOut schema
 interface ClubRecommendation {
@@ -30,14 +30,14 @@ const RecommendationsPage: React.FC = () => {
       console.log("Attempting to fetch recommendations...");
 
       try {
-        const response = await fetch('/api/recommendations/clubs', {
-          method: 'GET',
+        const response = await fetch("/habits/clubs", {
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             // Add other headers if necessary, but 'credentials' handles cookies
           },
           // IMPORTANT: Include credentials (cookies) for authentication
-          credentials: 'include',
+          credentials: "include",
         });
 
         // Log raw response status for debugging
@@ -65,10 +65,12 @@ const RecommendationsPage: React.FC = () => {
 
         // You could store the data in state if you wanted to display it later
         // setRecommendations(data);
-
       } catch (err: any) {
         console.error("Failed to fetch recommendations:", err);
-        setError(err.message || 'An unknown error occurred while fetching recommendations.');
+        setError(
+          err.message ||
+            "An unknown error occurred while fetching recommendations.",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -76,7 +78,7 @@ const RecommendationsPage: React.FC = () => {
 
     fetchRecommendations();
 
-  // Add fetchAttempted to dependencies to respect the check (though empty array is common)
+    // Add fetchAttempted to dependencies to respect the check (though empty array is common)
   }, [fetchAttempted]);
 
   return (
@@ -99,7 +101,8 @@ const RecommendationsPage: React.FC = () => {
 
       {!isLoading && !error && (
         <div className="text-center text-green-700 dark:text-green-300">
-          Recommendation data has been logged to the browser's developer console.
+          Recommendation data has been logged to the browser's developer
+          console.
         </div>
       )}
 
@@ -110,3 +113,4 @@ const RecommendationsPage: React.FC = () => {
 };
 
 export default RecommendationsPage;
+

@@ -14,8 +14,7 @@ def get_habits(user_id: str) -> UserHabitsData:
     Fetches the UserHabitsData for the given UID from the habits microservice.
     Raises HTTPError on non-2xx responses.
     """
-    url = f"{HABITS_SERVICE_URL}/habits/{user_id}"
-    print(url)
+    url = f"{HABITS_SERVICE_URL}/habit/{user_id}"
     resp = requests.get(url, timeout=5)
     resp.raise_for_status()
     # resp.json() should match UserHabitsData schema
@@ -27,7 +26,7 @@ def update_habits(habits_data: UserHabitsData) -> None:
     Sends the updated habits_data to the microservice via PUT.
     Raises HTTPError on non-2xx responses.
     """
-    url = f"{HABITS_SERVICE_URL}/habits"
+    url = f"{HABITS_SERVICE_URL}/habit"
     # Pydantic v2: use .model_dump(); v1: .dict()
     payload = (
         habits_data.model_dump()

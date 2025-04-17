@@ -30,7 +30,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/habits/{uid}",
+    "/habit/{uid}",
     status_code=status.HTTP_200_OK,
     summary="Get User Habits",
     description="Retrieves habits of the given uid",
@@ -42,7 +42,7 @@ def get_user_habits(uid: str, db: Session = Depends(get_db)):
 
 
 @router.put(
-    "/habits",
+    "/habit",
     status_code=status.HTTP_200_OK,
     summary="Update User Habits",
     description="Updates habits of the given uid",

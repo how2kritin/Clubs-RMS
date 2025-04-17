@@ -1,6 +1,6 @@
 // src/pages/Dashboard.tsx
-import React, { useState, useEffect } from 'react';
-import ClubCard from '../components/ClubCard.jsx'
+import React, { useState, useEffect } from "react";
+import ClubCard from "../components/ClubCard.jsx";
 
 // Define the structure of a Club object (reuse or define if not already shared)
 interface Club {
@@ -23,8 +23,11 @@ const Dashboard: React.FC = () => {
 
   // State for recommended clubs
   const [recommendedClubs, setRecommendedClubs] = useState<Club[]>([]);
-  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState<boolean>(true);
-  const [errorRecommendations, setErrorRecommendations] = useState<string | null>(null);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] =
+    useState<boolean>(true);
+  const [errorRecommendations, setErrorRecommendations] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     // --- Fetch User's Clubs ---
@@ -32,14 +35,19 @@ const Dashboard: React.FC = () => {
       setIsLoadingMyClubs(true);
       setErrorMyClubs(null);
       try {
-        const response = await fetch('/api/user/user_club_info', {
-          method: 'GET',
-          credentials: 'include', // Send cookies
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/user/user_club_info", {
+          method: "GET",
+          credentials: "include", // Send cookies
+          headers: { "Content-Type": "application/json" },
         });
         if (!response.ok) {
           let errorDetail = `Error ${response.status}`;
-          try { const data = await response.json(); errorDetail = data.detail || errorDetail; } catch (e) { /* ignore */ }
+          try {
+            const data = await response.json();
+            errorDetail = data.detail || errorDetail;
+          } catch (e) {
+            /* ignore */
+          }
           throw new Error(`Failed to fetch user's clubs: ${errorDetail}`);
         }
         const data: Club[] = await response.json();
@@ -57,14 +65,19 @@ const Dashboard: React.FC = () => {
       setIsLoadingRecommendations(true);
       setErrorRecommendations(null);
       try {
-        const response = await fetch('/api/recommendations/clubs', {
-          method: 'GET',
-          credentials: 'include', // Send cookies
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/recommendations/clubs", {
+          method: "GET",
+          credentials: "include", // Send cookies
+          headers: { "Content-Type": "application/json" },
         });
-         if (!response.ok) {
+        if (!response.ok) {
           let errorDetail = `Error ${response.status}`;
-          try { const data = await response.json(); errorDetail = data.detail || errorDetail; } catch (e) { /* ignore */ }
+          try {
+            const data = await response.json();
+            errorDetail = data.detail || errorDetail;
+          } catch (e) {
+            /* ignore */
+          }
           throw new Error(`Failed to fetch recommendations: ${errorDetail}`);
         }
         const data: Club[] = await response.json();
@@ -81,7 +94,6 @@ const Dashboard: React.FC = () => {
     // Fetch both sets of data when component mounts
     fetchMyClubs();
     fetchRecommendations();
-
   }, []); // Empty dependency array ensures this runs only once on mount
 
   // Helper function to render a section (My Clubs or Recommendations)
@@ -89,17 +101,22 @@ const Dashboard: React.FC = () => {
     title: string,
     clubs: Club[],
     isLoading: boolean,
-    error: string | null
+    error: string | null,
   ) => {
     return (
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200 border-b pb-2">
           {title}
         </h2>
-        {isLoading && <p className="text-gray-600 dark:text-gray-400">Loading...</p>}
-        {error && <p className="text-red-600 dark:text-red-400">Error: {error}</p>}
-        {!isLoading && !error && (
-          clubs.length > 0 ? (
+        {isLoading && (
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        )}
+        {error && (
+          <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+        )}
+        {!isLoading &&
+          !error &&
+          (clubs.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {clubs.map((club) => (
                 <ClubCard
@@ -113,10 +130,11 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <p className="text-gray-600 dark:text-gray-400">
-              {title === "My Clubs" ? "You are not currently in any clubs listed here." : "No recommendations available at the moment."}
+              {title === "My Clubs"
+                ? "You are not currently in any clubs listed here."
+                : "No recommendations available at the moment."}
             </p>
-          )
-        )}
+          ))}
       </section>
     );
   };
@@ -131,10 +149,15 @@ const Dashboard: React.FC = () => {
       {renderClubSection("My Clubs", myClubs, isLoadingMyClubs, errorMyClubs)}
 
       {/* Render Recommended Clubs Section */}
-      {renderClubSection("Recommended Clubs", recommendedClubs, isLoadingRecommendations, errorRecommendations)}
-
+      {renderClubSection(
+        "Recommended Clubs",
+        recommendedClubs,
+        isLoadingRecommendations,
+        errorRecommendations,
+      )}
     </div>
   );
 };
 
 export default Dashboard;
+

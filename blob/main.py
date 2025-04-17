@@ -7,7 +7,6 @@ from models.clubs.clubs_sync import sync_clubs
 
 # just import whatever routers you want to import from ./routers here.
 from routers import (
-    recommendations_router,
     interviews_router,
     users_router,
     recruitment_router,
@@ -37,7 +36,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    init_db()
+    reset_db()
     db = SessionLocal()
 
     # sync clubs data from Clubs Council API
@@ -61,5 +60,4 @@ app.include_router(clubs_router.router, prefix="/api/club")
 app.include_router(applications_router.router, prefix="/api/application")
 app.include_router(recruitment_router.router, prefix="/api/recruitment")
 app.include_router(calendar_router.router, prefix="/api/calendar")
-app.include_router(recommendations_router.router, prefix="/api")
 app.include_router(interviews_router.router, prefix="/api/interviews")
