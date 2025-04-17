@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 
 from fastapi import (
     APIRouter,
@@ -10,6 +11,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from models.club_recruitment.club_recruitment_model import Form
 from models.calendar.interviews_config import (
     ScheduleInterviewFormResponseStr,
     ScheduleInterviewFormResponseDatetime,
@@ -35,7 +37,7 @@ router = APIRouter()
 
 @router.post("/schedule_interviews/{form_id}", status_code=status.HTTP_200_OK)
 async def schedule_interviews(
-    form_id: str,
+    form_id: int,
     encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
     db: Session = Depends(get_db),
     form_data: ScheduleInterviewFormResponseStr = Body(...),
@@ -44,7 +46,31 @@ async def schedule_interviews(
     print(json.dumps(form_data.model_dump(), indent=2))
     print("Form ID:", form_id)
 
-    # TODO: check if deadline has passed or not
+    # check if deadline has passed or not
+    recruitment_form = db.query(Form).filter(Form.id == form_id).first()
+    if not recruitment_form:
+        raise HTTPException(
+            status_code=404,
+            detail="Form not found",
+        )
+
+    # RBAC
+    # must be the club account
+    cur_user = await get_current_user(encrypted_session_id, db)
+    if cur_user["uid"] != recruitment_form.club_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to schedule interviews for this club.",
+        )
+
+    deadline = recruitment_form.deadline
+    if deadline.tzinfo is None:
+        deadline = deadline.replace(tzinfo=timezone.utc)
+    if datetime.now(timezone.utc) < deadline:
+        raise HTTPException(
+            status_code=400,
+            detail="Form is still active. Cannot schedule interviews.",
+        )
 
     try:
         # convert to date and time and all
@@ -61,10 +87,6 @@ async def schedule_interviews(
 
     # calculate interview slots and create slots, panels and a schedule
     interview_slots = calculate_interview_slots(form_data_parsed)
-
-    # TODO: RBAC?
-    # must be the club account
-    cur_user = await get_current_user(encrypted_session_id, db)
 
     schedule_id, slot_ids, panel_ids = create_schedule(
         club_id=cur_user["uid"],

@@ -126,7 +126,7 @@ def calculate_interview_slots(
 
 def create_schedule(
     club_id: str,
-    form_id: str,
+    form_id: int,
     slots: List[Tuple[datetime, datetime, datetime]],
     slot_length: int,
     num_panels: int,
@@ -222,7 +222,7 @@ def allocate_calendar_events(
     panel_ids: List[int],
     db: Session,
     club_id: str,
-    form_id: str,
+    form_id: int,
 ):
 
     # get all applications submitted for the form

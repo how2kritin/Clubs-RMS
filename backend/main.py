@@ -36,7 +36,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    init_db()
+    reset_db()
     db = SessionLocal()
 
     # sync clubs data from Clubs Council API
