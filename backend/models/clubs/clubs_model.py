@@ -7,8 +7,8 @@ from utils.database_utils import Base
 club_members = Table(
     "club_members",
     Base.metadata,
-    Column("club_id", String, ForeignKey("clubs.cid")),
-    Column("user_id", String, ForeignKey("users.uid")),
+    Column("club_id", String, ForeignKey("clubs.cid", ondelete="CASCADE")),
+    Column("user_id", String, ForeignKey("users.uid", ondelete="CASCADE")),
     Column("role", String),
     Column("is_poc", Boolean, default=False),
 )
@@ -17,8 +17,8 @@ club_members = Table(
 club_subscribers = Table(
     "club_subscribers",
     Base.metadata,
-    Column("club_id", String, ForeignKey("clubs.cid"), primary_key=True),
-    Column("user_id", String, ForeignKey("users.uid"), primary_key=True),
+    Column("club_id", String, ForeignKey("clubs.cid", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", String, ForeignKey("users.uid", ondelete="CASCADE"), primary_key=True),
 )
 
 
@@ -39,9 +39,19 @@ class Club(Base):
     socials = Column(JSON, nullable=True)
 
     # many-to-many relationship with users
-    members = relationship("User", secondary=club_members, backref="clubs")
+    members = relationship(
+        "User",
+        secondary=club_members,
+        backref="clubs",
+        cascade="all, delete",
+        passive_deletes=True
+    )
 
     # many-to-many relationship with users (subscribers)
     subscribers = relationship(
-        "User", secondary=club_subscribers, backref="subscriptions"
+        "User",
+        secondary=club_subscribers,
+        backref="subscriptions",
+        cascade="all, delete",
+        passive_deletes=True
     )

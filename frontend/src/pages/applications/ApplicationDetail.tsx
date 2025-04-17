@@ -1,13 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {Alert, Button, Card, Descriptions, Divider, Modal, Space, Tag, Typography, message} from 'antd';
+import {Alert, Button, Card, Descriptions, Divider, message, Modal, Space, Tag, Typography} from 'antd';
 import {
-  CheckOutlined,
-  CloseOutlined,
-  DeleteOutlined,
-  LikeOutlined,
-  DislikeOutlined,
-  RollbackOutlined
+    CheckOutlined, CloseOutlined, DeleteOutlined, DislikeOutlined, LikeOutlined, RollbackOutlined
 } from '@ant-design/icons';
 import './ApplicationDetail.css';
 
@@ -44,6 +39,7 @@ const ApplicationDetail: React.FC = () => {
     const [actionLoading, setActionLoading] = useState<boolean>(false);
     const [endorseActionLoading, setEndorseActionLoading] = useState<boolean>(false);
     const [isClubMember, setIsClubMember] = useState<boolean>(false);
+    const [isClubAdmin, setIsClubAdmin] = useState<boolean>(false);
     const [currentUserId, setCurrentUserId] = useState<string>('');
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState<boolean>(false);
     const [statusUpdateError, setStatusUpdateError] = useState<string | null>(null);
@@ -61,6 +57,15 @@ const ApplicationDetail: React.FC = () => {
             const data = await response.json();
             setApplication(data);
             setIsClubMember(data?.is_club_member);
+
+            const clubAdminResponse = await fetch(`/api/user/user_role/${data.club_id}`, {
+                credentials: "include",
+            },);
+
+            if (clubAdminResponse.ok) {
+                const adminData = await clubAdminResponse.json();
+                setIsClubAdmin(adminData.is_admin);
+            }
 
             // Get current user information to check if they're the applicant
             const userInfoResponse = await fetch('/api/application/autofill-details');
@@ -89,11 +94,9 @@ const ApplicationDetail: React.FC = () => {
             setStatusUpdateError(null);
 
             const response = await fetch(`/api/application/${applicationId}/status`, {
-                method: 'PUT',
-                headers: {
+                method: 'PUT', headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+                }, body: JSON.stringify({
                     status: newStatus
                 }),
             });
@@ -215,9 +218,7 @@ const ApplicationDetail: React.FC = () => {
         return <Alert message="Application not found" type="error"/>;
     }
 
-    const statusColor = application.status === 'ongoing' ? 'gold' :
-                       application.status === 'accepted' ? 'green' :
-                       application.status === 'rejected' ? 'red' : 'blue';
+    const statusColor = application.status === 'ongoing' ? 'gold' : application.status === 'accepted' ? 'green' : application.status === 'rejected' ? 'red' : 'blue';
 
     // Check if current user is the application creator and if application is ongoing
     const isApplicationCreator = currentUserId === application.user_id;
@@ -227,8 +228,7 @@ const ApplicationDetail: React.FC = () => {
     // Check if the current user has already endorsed this application
     const hasEndorsed = application.endorser_ids?.includes(currentUserId) || false;
 
-    return (
-        <div className="application-detail-container">
+    return (<div className="application-detail-container">
             <Card className="application-detail-card">
                 <div className="application-detail-header">
                     <Space>
@@ -255,8 +255,7 @@ const ApplicationDetail: React.FC = () => {
                     </Descriptions.Item>
                 </Descriptions>
 
-                {statusUpdateError && (
-                    <Alert
+                {statusUpdateError && (<Alert
                         message="Status Update Error"
                         description={statusUpdateError}
                         type="error"
@@ -264,31 +263,27 @@ const ApplicationDetail: React.FC = () => {
                         closable
                         className="status-update-error"
                         onClose={() => setStatusUpdateError(null)}
-                        style={{ marginTop: '16px', marginBottom: '16px' }}
-                    />
-                )}
+                        style={{marginTop: '16px', marginBottom: '16px'}}
+                    />)}
 
                 <Divider orientation="left">Responses</Divider>
 
                 <div className="application-responses">
-                    {application.responses.map((response, index) => (
-                        <Card key={index} className="response-card">
+                    {application.responses.map((response, index) => (<Card key={index} className="response-card">
                             <div className="question">
                                 <Text strong>Q: {response.question_text}</Text>
                             </div>
                             <div className="answer">
                                 <Text>A: {response.answer_text}</Text>
                             </div>
-                        </Card>
-                    ))}
+                        </Card>))}
                 </div>
 
                 {/* Club member actions */}
-                {isClubMember && (
-                    <>
-                        <Divider orientation="left">Club Member Actions</Divider>
+                {isClubMember && (<>
+                <Divider orientation="left">Club Member Actions</Divider>
                         <Space className="application-actions">
-                            <Button
+                            {isClubAdmin && (<><Button
                                 type="primary"
                                 icon={<CheckOutlined/>}
                                 onClick={() => handleStatusUpdate('accepted')}
@@ -305,34 +300,28 @@ const ApplicationDetail: React.FC = () => {
                                 disabled={application.status === 'rejected'}
                             >
                                 Reject
-                            </Button>
+                            </Button></>)}
 
-                            {hasEndorsed ? (
-                                <Button
+                            {hasEndorsed ? (<Button
                                     danger
-                                    icon={<DislikeOutlined />}
+                                    icon={<DislikeOutlined/>}
                                     onClick={handleWithdrawEndorsement}
                                     loading={endorseActionLoading}
                                 >
                                     Withdraw Endorsement
-                                </Button>
-                            ) : (
-                                <Button
+                                </Button>) : (<Button
                                     type="default"
-                                    icon={<LikeOutlined />}
+                                    icon={<LikeOutlined/>}
                                     onClick={handleEndorse}
                                     loading={endorseActionLoading}
                                 >
                                     Endorse
-                                </Button>
-                            )}
+                                </Button>)}
                         </Space>
-                    </>
-                )}
+                    </>)}
 
                 {/* Application creator actions */}
-                {canDelete && (
-                    <>
+                {canDelete && (<>
                         <Divider orientation="left">Applicant Actions</Divider>
                         <Space className="application-actions">
                             <Button
@@ -344,8 +333,7 @@ const ApplicationDetail: React.FC = () => {
                                 Delete Application
                             </Button>
                         </Space>
-                    </>
-                )}
+                    </>)}
             </Card>
 
             {/* Delete confirmation modal */}
@@ -361,8 +349,7 @@ const ApplicationDetail: React.FC = () => {
                 <p>Are you sure you want to delete this application?</p>
                 <p>This action cannot be undone.</p>
             </Modal>
-        </div>
-    );
+        </div>);
 };
 
 export default ApplicationDetail;

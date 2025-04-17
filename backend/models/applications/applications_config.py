@@ -2,11 +2,12 @@ import datetime
 from typing import Dict, Any, List
 
 from fastapi import HTTPException, Depends
-from sqlalchemy import inspect
+from sqlalchemy import inspect, and_
 from sqlalchemy.orm import Session
 
 # Update endorser_ids using a direct SQL update instead of ORM
 from sqlalchemy import update
+from sqlalchemy.orm.exc import StaleDataError
 
 from models.applications.applications_model import Application, ApplicationStatus
 from models.applications.applications_model import Response
@@ -200,16 +201,22 @@ async def update_application_status(db: Session, application_id: int, status_upd
             raise HTTPException(status_code=400, detail="Cannot update application status before the deadline", )
 
     application.status = status_update.status  # type: ignore
-    if application.status == ApplicationStatus.accepted:  # type: ignore
-        club = db.query(Club).filter(Club.cid == form.club_id).first()
-        if not club:
-            raise HTTPException(status_code=404, detail="Club not found")
 
-        user = db.query(User).filter(User.uid == application.user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+    club = db.query(Club).filter(Club.cid == form.club_id).first()
+    if not club:
+        raise HTTPException(status_code=404, detail="Club not found")
 
-        club.members.append(user)
+    user = db.query(User).filter(User.uid == application.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if application.status == ApplicationStatus.accepted:
+        if user not in club.members:
+            club.members.append(user)
+
+    elif application.status == ApplicationStatus.rejected:
+        if user in club.members:
+            club.members.remove(user)
 
     db.commit()
     db.refresh(application)
