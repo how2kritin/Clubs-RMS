@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 
 from models.users.users_model import User
-from models.clubs.clubs_model import Club, club_members
+from models.clubs.clubs_model import Club, club_subscribers
 
 logger = logging.getLogger(__name__)
 
@@ -127,14 +127,15 @@ class PopularClubsStrategy(RecommendationStrategy):
         top_n = 5
         try:
             popular_clubs_query = db.query(
-                    Club.name, func.count(club_members.c.user_id).label('member_count')
+                    Club.name, func.count(club_subscribers.c.user_id).label('subscriber_count')
                 ).\
-                join(club_members, Club.cid == club_members.c.club_id).\
+                join(club_subscribers, Club.cid == club_subscribers.c.club_id).\
                 group_by(Club.cid).\
-                order_by(desc('member_count')).\
+                order_by(desc('subscriber_count')).\
                 limit(top_n)
 
             popular_clubs_list = [f"{name} ({count} members)" for name, count in popular_clubs_query.all()]
+            print(f"Popular clubs: {popular_clubs_list}")
             popular_clubs_str = f"Some of the most popular clubs currently are: {', '.join(popular_clubs_list)}." if popular_clubs_list else ""
 
         except Exception as e:

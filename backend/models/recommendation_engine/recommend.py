@@ -128,6 +128,9 @@ class RecommendationContext:
             logger.info(f"No recommendations received from Gemini for user {self._user.uid}.")
             return []
 
+        member_club_cids = {club.cid for club in self._user.clubs} if self._user.clubs else set()
+        logger.debug(f"User {self._user.uid} is member of clubs with CIDs: {member_club_cids}")
+
         try:
             valid_cids = [str(cid) for cid in recommended_cids]
             recommended_clubs_query = self._db.query(Club).filter(Club.cid.in_(valid_cids))
@@ -135,6 +138,8 @@ class RecommendationContext:
 
             recommended_clubs_dict = {club.cid: club for club in recommended_clubs_list}
             ordered_recommended_clubs = [recommended_clubs_dict[cid] for cid in valid_cids if cid in recommended_clubs_dict]
+            
+            ordered_recommended_clubs = [club for club in ordered_recommended_clubs if club.cid not in member_club_cids]
 
             logger.info(f"Returning {len(ordered_recommended_clubs)} recommendations for user {self._user.uid} using {self._strategy.__class__.__name__}.")
             return ordered_recommended_clubs
