@@ -210,3 +210,9 @@
 .schedule-interviews-btn:hover {
   background-color: #c9302c;
 }
+
+.schedule-interviews-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.65;
+}

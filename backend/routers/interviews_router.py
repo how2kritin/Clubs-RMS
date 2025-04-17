@@ -44,6 +44,8 @@ async def schedule_interviews(
     print(json.dumps(form_data.model_dump(), indent=2))
     print("Form ID:", form_id)
 
+    # TODO: check if deadline has passed or not
+
     try:
         # convert to date and time and all
         form_data_parsed: ScheduleInterviewFormResponseDatetime = (
@@ -75,49 +77,50 @@ async def schedule_interviews(
     print("Interview schedule created successfully")
     print(schedule_id, slot_ids, panel_ids)
 
-    # TODO: remove after testing
-    # create applications
-    from models.applications.applications_model import Application
-    from models.users.users_model import User
+    # # TODO: remove after testing
+    # # create applications
+    # from models.applications.applications_model import Application
+    # from models.users.users_model import User
 
-    for uid in [
-        "varun.edachali",
-        "samyak.mishra",
-        "shaunak.biswas",
-        "ashutosh.rudrabhatla",
-        "kritin.madireddy",
-        # "vamsi.krishna",
-    ]:
-        exisiting_user = db.query(User).filter(User.uid == uid).first()
-        if exisiting_user:
-            print("User already exists")
-        else:
-            user = User(
-                uid=uid,
-                email=uid + "@students.iiit.ac.in",
-                first_name=uid,
-                last_name=uid,
-                roll_number=uid,
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-            print("User created successfully")
+    # for uid in [
+    #     "varun.edachali",
+    #     "samyak.mishra",
+    #     "shaunak.biswas",
+    #     "ashutosh.rudrabhatla",
+    #     "kritin.madireddy",
+    #     # "vamsi.krishna",
+    # ]:
+    #     exisiting_user = db.query(User).filter(User.uid == uid).first()
+    #     if exisiting_user:
+    #         print("User already exists")
+    #         user = exisiting_user
+    #     else:
+    #         user = User(
+    #             uid=uid,
+    #             email=uid + "@students.iiit.ac.in",
+    #             first_name=uid,
+    #             last_name=uid,
+    #             roll_number=uid,
+    #         )
+    #         db.add(user)
+    #         db.commit()
+    #         db.refresh(user)
+    #         print("User created successfully")
 
-        print(user.uid)
-        application = Application(
-            form_id=form_id,
-            user_id=uid,
-            status="ongoing",
-        )
+    #     print(user.uid)
+    #     application = Application(
+    #         form_id=form_id,
+    #         user_id=uid,
+    #         status="ongoing",
+    #     )
 
-        db.add(application)
-        db.commit()
-        db.refresh(application)
-        print("Application created successfully")
-        print(application.id)
+    #     db.add(application)
+    #     db.commit()
+    #     db.refresh(application)
+    #     print("Application created successfully")
+    #     print(application.id)
 
-    # TODO: allocate applicants to slots
+    # allocate applicants to slots
     event_ids = allocate_calendar_events(
         schedule_id=schedule_id,
         slot_ids=slot_ids,
