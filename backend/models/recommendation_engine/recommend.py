@@ -14,7 +14,7 @@ from schemas.clubs.clubs import ClubOut
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '..', 'envs', '.env')
+dotenv_path = os.path.join(os.path.dirname(__file__), "..", "..", "envs", ".env")
 load_dotenv(dotenv_path=dotenv_path)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 gemini_model = None
@@ -27,6 +27,7 @@ else:
         gemini_model = genai.GenerativeModel('gemini-1.5-flash')
     except Exception as e:
         logger.error(f"Failed to configure Gemini API: {e}")
+
 
 async def get_recommendations_from_gemini(prompt: str) -> List[str]:
     """Calls the Gemini API and returns a list of recommended CIDs."""
@@ -46,7 +47,9 @@ async def get_recommendations_from_gemini(prompt: str) -> List[str]:
              {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
              {"category": "HARM_CATEGORY_DANGEROUS_CONTENT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
         ]
-        response = await gemini_model.generate_content_async(prompt, safety_settings=safety_settings)
+        response = await gemini_model.generate_content_async(
+            prompt, safety_settings=safety_settings
+        )
         logger.debug(f"Raw Gemini Response Text: '{response.text}'")
         raw_cids = response.text.strip()
         if raw_cids:
@@ -67,10 +70,12 @@ from .strategies import (
 )
 
 
+
 class RecommendationContext:
     """
     Context class to manage and execute recommendation strategies.
     """
+
     def __init__(self, user: User, db: Session):
         if not isinstance(user, User):
             raise TypeError("RecommendationContext requires a valid User object.")

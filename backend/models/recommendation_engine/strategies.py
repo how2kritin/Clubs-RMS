@@ -18,6 +18,7 @@ class RecommendationStrategy(ABC):
     Abstract base class for recommendation strategies.
     Each strategy is responsible for generating the final list of recommended clubs.
     """
+
     @abstractmethod
     async def get_recommendations(self, user: User, all_clubs: List[Club], db: Session) -> List[Club]:
         """
@@ -89,8 +90,8 @@ class HobbiesSkillsStrategy(RecommendationStrategy):
     async def get_recommendations(self, user: User, all_clubs: List[Club], db: Session) -> List[Club]:
         profile_lines = [f"User Profile for {user.first_name} (ID: {user.uid}):"]
         has_content = False
-        if user.hobbies:
-            profile_lines.append(f"- Hobbies: {user.hobbies}")
+        if user.habits.hobbies:
+            profile_lines.append(f"- Hobbies: {user.habits.hobbies}")
             has_content = True
         if user.skills and user.skills != {} and user.skills != []: 
             skills_str = str(user.skills)
