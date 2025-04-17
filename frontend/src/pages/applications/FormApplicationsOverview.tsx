@@ -49,9 +49,12 @@ const FormApplicationsOverview: React.FC = () => {
         setFormTitle(formData.name);
 
         // Perform RBAC: Only allow if the user is a club member or admin.
-        const roleResponse = await fetch(`/api/user_role/${formData.club_id}`, {
-          credentials: "include",
-        });
+        const roleResponse = await fetch(
+          `/api/user/user_role/${formData.club_id}`,
+          {
+            credentials: "include",
+          },
+        );
         if (!roleResponse.ok) {
           throw new Error(
             `Failed to fetch user role: ${roleResponse.statusText}`,
@@ -183,4 +186,3 @@ const FormApplicationsOverview: React.FC = () => {
 };
 
 export default FormApplicationsOverview;
-
