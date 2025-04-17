@@ -142,7 +142,7 @@ export const CreateRouter = () => {
       ),
     },
     {
-      path: "/schedule_interviews",
+      path: "/schedule_interviews/:formId",
       element: (
         <ProtectedRoute>
           <PageLayout customPage={ScheduleInterviews} />

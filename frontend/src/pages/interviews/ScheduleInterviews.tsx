@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useParams } from "react-router-dom";
 import './ScheduleInterviews.css';
 
 interface TimeRange {
@@ -28,6 +29,7 @@ interface ScheduleInterviewsFormResponse {
 }
 
 const ScheduleInterviews: React.FC = () => {
+  const { formId } = useParams<{ formId: string }>();
   const [dates, setDates] = useState<DateSchedule[]>([]);
   const [slotDuration, setSlotDuration] = useState<number>(30); // in minutes
   const [panelCount, setPanelCount] = useState<number>(1);
@@ -150,7 +152,7 @@ const ScheduleInterviews: React.FC = () => {
     };
 
     console.log('Form submitted:', formattedData);
-    fetch('/api/interviews/schedule_interviews', {
+    fetch(`/api/interviews/schedule_interviews/${formId}`, {
       method: 'POST',
       credentials: 'include',
       headers: {

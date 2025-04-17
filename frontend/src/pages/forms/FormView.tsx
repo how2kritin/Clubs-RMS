@@ -167,6 +167,11 @@ function FormView() {
     navigate(`/forms/${formId}/applications`);
   };
 
+  // Handler to navigate to schedule interviews
+  const handleScheduleInterviews = () => {
+    navigate(`/schedule_interviews/${formId}`);
+  };
+
   if (isLoading) {
     return <p>Loading...</p>;
   }
@@ -177,7 +182,7 @@ function FormView() {
 
   // Check if deadline has passed
   const isDeadlinePassed = form.deadline
-    ? new Date() > new Date(form.deadline)
+    ? new Date().getTime() > new Date(form.deadline + 'Z').getTime()
     : false;
 
   return (
@@ -294,6 +299,15 @@ function FormView() {
             {isClubAdmin && (
               <button onClick={handleDelete} className="delete-btn">
                 Delete Form
+              </button>
+            )}
+            {isClubAdmin && (
+              <button
+                className="schedule-interviews-btn"
+                onClick={handleScheduleInterviews}
+                disabled={!isDeadlinePassed}
+              >
+                {isDeadlinePassed ? "Schedule Interviews" : "Form Still Open"}
               </button>
             )}
           </div>
