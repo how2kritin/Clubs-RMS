@@ -6,18 +6,11 @@ from typing import List, Optional, Dict, Any
 from dotenv import load_dotenv
 import google.generativeai as genai
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError 
+from sqlalchemy.exc import SQLAlchemyError
 
 from models.users.users_model import User
 from models.clubs.clubs_model import Club
-from schemas.clubs.clubs import ClubOut
-
-from .strategies import ( 
-    RecommendationStrategy,
-    HobbiesSkillsStrategy,
-    CurrentClubsStrategy,
-    PopularClubsStrategy
-)
+from schemas.clubs.clubs import ClubOut 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,18 +24,23 @@ else:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
         logger.info("Gemini API configured successfully.")
-        gemini_model = genai.GenerativeModel('gemini-1.5-flash') 
+        gemini_model = genai.GenerativeModel('gemini-1.5-flash')
     except Exception as e:
         logger.error(f"Failed to configure Gemini API: {e}")
 
 async def get_recommendations_from_gemini(prompt: str) -> List[str]:
+    """Calls the Gemini API and returns a list of recommended CIDs."""
     if not gemini_model:
         logger.error("Gemini model not initialized. Cannot get recommendations.")
         return []
+    if not prompt:
+        logger.warning("get_recommendations_from_gemini called with empty prompt.")
+        return []
+
     recommended_cids = []
     try:
         logger.info("Sending request to Gemini API...")
-        safety_settings=[ 
+        safety_settings=[
              {"category": "HARM_CATEGORY_HARASSMENT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
              {"category": "HARM_CATEGORY_HATE_SPEECH","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
              {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
@@ -53,15 +51,21 @@ async def get_recommendations_from_gemini(prompt: str) -> List[str]:
         raw_cids = response.text.strip()
         if raw_cids:
              recommended_cids = [cid.strip() for cid in raw_cids.split(',') if cid.strip()]
-        logger.info(f"Parsed recommended CIDs: {recommended_cids}")
+        logger.info(f"Parsed recommended CIDs from Gemini: {recommended_cids}")
     except Exception as e:
         logger.error(f"Error calling Gemini API or parsing response: {e}", exc_info=True)
         if 'response' in locals() and hasattr(response, 'prompt_feedback'):
              logger.error(f"Gemini Prompt Feedback: {response.prompt_feedback}")
-        recommended_cids = []
+        recommended_cids = [] 
     return recommended_cids
 
-logger = logging.getLogger(__name__)
+from .strategies import (
+    RecommendationStrategy,
+    HobbiesSkillsStrategy,
+    CurrentClubsStrategy,
+    PopularClubsStrategy
+)
+
 
 class RecommendationContext:
     """
@@ -73,29 +77,26 @@ class RecommendationContext:
         self._user = user
         self._db = db
         self._strategy: RecommendationStrategy = self._select_strategy()
-        self._all_clubs: Optional[List[Club]] = None 
+        self._all_clubs: Optional[List[Club]] = None
 
     def _select_strategy(self) -> RecommendationStrategy:
         """Selects the appropriate strategy based on user data."""
-        # Check 1: Hobbies or Skills present?
-        # Ensure skills check is meaningful (e.g., not None, not empty dict/list if applicable)
         if self._user.hobbies or (self._user.skills and self._user.skills != {} and self._user.skills != []):
              logger.debug(f"Selecting HobbiesSkillsStrategy for user {self._user.uid}")
              return HobbiesSkillsStrategy()
 
-        # Check 2: Current Clubs present?
-        # Accessing user.clubs might trigger a lazy load if not eager loaded before.
-        # It's better to eager load when fetching the user initially.
-        if self._user.clubs: 
-            logger.debug(f"Selecting CurrentClubsStrategy for user {self._user.uid}")
-            return CurrentClubsStrategy()
+        try:
+            if self._user.clubs: 
+                logger.debug(f"Selecting CurrentClubsStrategy for user {self._user.uid}")
+                return CurrentClubsStrategy()
+        except SQLAlchemyError as e:
+            logger.error(f"Database error accessing user.clubs for user {self._user.uid}: {e}. Falling back.")
 
-        # Fallback: Popular Clubs
         logger.debug(f"Selecting PopularClubsStrategy for user {self._user.uid}")
         return PopularClubsStrategy()
 
     def _fetch_all_clubs(self) -> List[Club]:
-        """Fetches all clubs from the database."""
+        """Fetches all active/relevant clubs from the database."""
         if self._all_clubs is None:
             try:
                 self._all_clubs = self._db.query(Club).order_by(Club.name).all()
@@ -104,49 +105,34 @@ class RecommendationContext:
                     self._all_clubs = []
             except SQLAlchemyError as e:
                 logger.error(f"Database error fetching all clubs: {e}", exc_info=True)
-                self._all_clubs = [] 
+                self._all_clubs = []
         return self._all_clubs
 
     async def get_recommendations(self) -> List[Club]:
         """
-        Orchestrates the recommendation process using the selected strategy.
+        Orchestrates the recommendation process by delegating to the selected strategy.
         """
         all_clubs = self._fetch_all_clubs()
-        if not all_clubs:
-            return [] 
+        if not all_clubs and not isinstance(self._strategy, PopularClubsStrategy):
+             logger.warning(f"No clubs available to recommend for user {self._user.uid}.")
+             return []
 
-        prompt = self._strategy.generate_prompt(self._user, all_clubs, self._db)
-
-        if not prompt:
-            logger.warning(f"Selected strategy {self._strategy.__class__.__name__} failed to generate a prompt for user {self._user.uid}.")
-            return []
-
-        logger.debug(f"Generated Prompt for Gemini (User: {self._user.uid}, Strategy: {self._strategy.__class__.__name__}):\n{prompt}")
-
-        recommended_cids = await get_recommendations_from_gemini(prompt)
-        if not recommended_cids:
-            logger.info(f"No recommendations received from Gemini for user {self._user.uid}.")
-            return []
-
-        member_club_cids = {club.cid for club in self._user.clubs} if self._user.clubs else set()
-        logger.debug(f"User {self._user.uid} is member of clubs with CIDs: {member_club_cids}")
+        logger.info(f"Using strategy {self._strategy.__class__.__name__} for user {self._user.uid}.")
 
         try:
-            valid_cids = [str(cid) for cid in recommended_cids]
-            recommended_clubs_query = self._db.query(Club).filter(Club.cid.in_(valid_cids))
-            recommended_clubs_list = recommended_clubs_query.all()
+            recommended_clubs: List[Club] = await self._strategy.get_recommendations(
+                self._user,
+                all_clubs, 
+                self._db
+            )
 
-            recommended_clubs_dict = {club.cid: club for club in recommended_clubs_list}
-            ordered_recommended_clubs = [recommended_clubs_dict[cid] for cid in valid_cids if cid in recommended_clubs_dict]
-            
-            ordered_recommended_clubs = [club for club in ordered_recommended_clubs if club.cid not in member_club_cids]
+            logger.info(f"Strategy {self._strategy.__class__.__name__} returned {len(recommended_clubs)} recommendations for user {self._user.uid}.")
+            if not isinstance(recommended_clubs, list) or not all(isinstance(c, Club) for c in recommended_clubs):
+                 logger.error(f"Strategy {self._strategy.__class__.__name__} did not return a valid List[Club]. Returning empty list.")
+                 return []
 
-            logger.info(f"Returning {len(ordered_recommended_clubs)} recommendations for user {self._user.uid} using {self._strategy.__class__.__name__}.")
-            return ordered_recommended_clubs
+            return recommended_clubs
 
-        except SQLAlchemyError as e:
-            logger.error(f"Database error fetching recommended clubs by CID: {e}", exc_info=True)
-            return []
         except Exception as e:
-             logger.error(f"Unexpected error fetching recommended clubs: {e}", exc_info=True)
+             logger.error(f"Error executing strategy {self._strategy.__class__.__name__} for user {self._user.uid}: {e}", exc_info=True)
              return []
