@@ -81,8 +81,6 @@ async def get_recommendations_from_gemini(prompt: str) -> List[str]:
 
 from .strategies import (
     RecommendationStrategy,
-    HobbiesSkillsStrategy,
-    CurrentClubsStrategy,
     PopularClubsStrategy,
 )
 
@@ -101,27 +99,6 @@ class RecommendationContext:
         self._all_clubs: Optional[List[Club]] = None
 
     def _select_strategy(self) -> RecommendationStrategy:
-        """Selects the appropriate strategy based on user data."""
-        if self._user.habits.hobbies or (
-            self._user.habits.skills
-            and self._user.habits.skills != {}
-            and self._user.habits.skills != []
-        ):
-            logger.debug(f"Selecting HobbiesSkillsStrategy for user {self._user.uid}")
-            return HobbiesSkillsStrategy()
-
-        try:
-            if self._user.clubs:
-                logger.debug(
-                    f"Selecting CurrentClubsStrategy for user {self._user.uid}"
-                )
-                return CurrentClubsStrategy()
-        except SQLAlchemyError as e:
-            logger.error(
-                f"Database error accessing user.clubs for user {self._user.uid}: {e}. Falling back."
-            )
-
-        logger.debug(f"Selecting PopularClubsStrategy for user {self._user.uid}")
         return PopularClubsStrategy()
 
     def _fetch_all_clubs(self) -> List[Club]:
