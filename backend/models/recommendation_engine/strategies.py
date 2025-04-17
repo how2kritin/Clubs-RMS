@@ -17,8 +17,11 @@ class RecommendationStrategy(ABC):
     """
     Abstract base class for recommendation prompt generation strategies.
     """
+
     @abstractmethod
-    def generate_prompt(self, user: User, all_clubs: List[Club], db: Session) -> Optional[str]:
+    def generate_prompt(
+        self, user: User, all_clubs: List[Club], db: Session
+    ) -> Optional[str]:
         """
         Generates a prompt for the Gemini API based on the strategy.
 
@@ -49,25 +52,33 @@ Do not include any other text, explanation, headers, or formatting. Just the com
 If no clubs seem like a good fit, return an empty string.
 """
 
+
 class HobbiesSkillsStrategy(RecommendationStrategy):
     """
     Generates prompt based on user's hobbies and skills.
     """
-    def generate_prompt(self, user: User, all_clubs: List[Club], db: Session) -> Optional[str]:
+
+    def generate_prompt(
+        self, user: User, all_clubs: List[Club], db: Session
+    ) -> Optional[str]:
         # This strategy assumes it's selected *because* hobbies or skills exist.
         profile_lines = [f"User Profile for {user.first_name} (ID: {user.uid}):"]
         has_content = False
-        if user.hobbies:
-            profile_lines.append(f"- Hobbies: {user.hobbies}")
+        if user.habits.hobbies:
+            profile_lines.append(f"- Hobbies: {user.habits.hobbies}")
             has_content = True
-        if user.skills: # Assuming skills is stored as JSON/dict or list-like string
-            skills_str = str(user.skills) # Simple string conversion for prompt
+        if (
+            user.habits.skills
+        ):  # Assuming skills is stored as JSON/dict or list-like string
+            skills_str = str(user.skills)  # Simple string conversion for prompt
             profile_lines.append(f"- Skills: {skills_str}")
             has_content = True
 
         if not has_content:
-             logger.warning(f"HobbiesSkillsStrategy selected for user {user.uid} but no hobbies/skills found.")
-             return None # Should not happen if selection logic is correct
+            logger.warning(
+                f"HobbiesSkillsStrategy selected for user {user.uid} but no hobbies/skills found."
+            )
+            return None  # Should not happen if selection logic is correct
 
         profile_str = "\n".join(profile_lines)
         clubs_str = self._format_club_list(all_clubs)
@@ -89,17 +100,22 @@ class CurrentClubsStrategy(RecommendationStrategy):
     """
     Generates prompt based on user's current club memberships.
     """
-    def generate_prompt(self, user: User, all_clubs: List[Club], db: Session) -> Optional[str]:
+
+    def generate_prompt(
+        self, user: User, all_clubs: List[Club], db: Session
+    ) -> Optional[str]:
         # Assumes user.clubs relationship is loaded or accessible
-        current_clubs = user.clubs # Access the relationship defined by backref
+        current_clubs = user.clubs  # Access the relationship defined by backref
         if not current_clubs:
-            logger.warning(f"CurrentClubsStrategy selected for user {user.uid} but no current clubs found.")
-            return None # Should not happen if selection logic is correct
+            logger.warning(
+                f"CurrentClubsStrategy selected for user {user.uid} but no current clubs found."
+            )
+            return None  # Should not happen if selection logic is correct
 
         current_club_names = [c.name for c in current_clubs]
         profile_lines = [
             f"User Profile for {user.first_name} (ID: {user.uid}):",
-            f"- Currently member of: {', '.join(current_club_names)}"
+            f"- Currently member of: {', '.join(current_club_names)}",
         ]
         profile_str = "\n".join(profile_lines)
         clubs_str = self._format_club_list(all_clubs)
@@ -122,25 +138,35 @@ class PopularClubsStrategy(RecommendationStrategy):
     Generates prompt aiming for generally popular or suitable clubs as a fallback.
     Optionally includes top N popular clubs in the prompt for context.
     """
-    def generate_prompt(self, user: User, all_clubs: List[Club], db: Session) -> Optional[str]:
+
+    def generate_prompt(
+        self, user: User, all_clubs: List[Club], db: Session
+    ) -> Optional[str]:
         # Fetch top N popular clubs based on member count
         top_n = 5
         try:
-            popular_clubs_query = db.query(
-                    Club.name, func.count(club_members.c.user_id).label('member_count')
-                ).\
-                join(club_members, Club.cid == club_members.c.club_id).\
-                group_by(Club.cid).\
-                order_by(desc('member_count')).\
-                limit(top_n)
+            popular_clubs_query = (
+                db.query(
+                    Club.name, func.count(club_members.c.user_id).label("member_count")
+                )
+                .join(club_members, Club.cid == club_members.c.club_id)
+                .group_by(Club.cid)
+                .order_by(desc("member_count"))
+                .limit(top_n)
+            )
 
-            popular_clubs_list = [f"{name} ({count} members)" for name, count in popular_clubs_query.all()]
-            popular_clubs_str = f"Some of the most popular clubs currently are: {', '.join(popular_clubs_list)}." if popular_clubs_list else ""
+            popular_clubs_list = [
+                f"{name} ({count} members)" for name, count in popular_clubs_query.all()
+            ]
+            popular_clubs_str = (
+                f"Some of the most popular clubs currently are: {', '.join(popular_clubs_list)}."
+                if popular_clubs_list
+                else ""
+            )
 
         except Exception as e:
             logger.error(f"Failed to query popular clubs: {e}", exc_info=True)
             popular_clubs_str = "Could not retrieve popularity data."
-
 
         profile_lines = [f"User Profile for {user.first_name} (ID: {user.uid}):"]
         if user.batch:
@@ -162,3 +188,4 @@ Recommend generally popular or suitable clubs for the following user from the av
 """
         logger.info(f"Using Popular Clubs (fallback) strategy for user {user.uid}")
         return prompt.strip()
+
