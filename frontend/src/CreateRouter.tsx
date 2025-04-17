@@ -3,17 +3,21 @@ import React from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage.tsx";
 import UserProfile from "./pages/UserProfile.tsx";
-import CreateForm from "./pages/CreateForm.tsx";
+import CreateForm from "./pages/forms/CreateForm.tsx";
 import ScheduleInterviews from "./pages/interviews/ScheduleInterviews.tsx";
 import CalendarLoader from "./pages/calendar/Calendar.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { useAuth } from "./AuthProvider.tsx";
 import Navbar from "./layout/Navbar.tsx";
-import ClubForms from "./pages/ClubForms.tsx";
-import FormView from "./pages/FormView.tsx";
+import ClubForms from "./pages/forms/ClubForms.tsx";
+import FormView from "./pages/forms/FormView.tsx";
 import RecommendationsPage from "./pages/RecommendationsPage.tsx";
 import ClubsPage from "./pages/ClubsPage.tsx";
+import ApplyToForm from "./pages/applications/ApplyToForm.tsx";
+import FormApplicationsOverview from "./pages/applications/FormApplicationsOverview.tsx";
+import ApplicationDetail from "./pages/applications/ApplicationDetail.tsx";
+import UserApplications from "./pages/applications/UserApplications.tsx";
 
 // ProtectedRoute component to guard private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -63,15 +67,15 @@ export const CreateRouter = () => {
         <ProtectedRoute>
           <PageLayout customPage={ClubsPage} />
         </ProtectedRoute>
-      )
+      ),
     },
     {
-      path: "/recommendations", // <-- Add the route definition
+      path: "/recommendations",
       element: (
         <ProtectedRoute>
           <PageLayout customPage={RecommendationsPage} />
         </ProtectedRoute>
-      )
+      ),
     },
     {
       path: "/profile",
@@ -106,12 +110,44 @@ export const CreateRouter = () => {
       ),
     },
     {
+      path: "/apply/:formId",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={ApplyToForm} />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/forms/:formId/applications",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={FormApplicationsOverview} />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/forms/:formId/applications/:applicationId",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={ApplicationDetail} />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/my-applications",
+      element: (
+        <ProtectedRoute>
+          <PageLayout customPage={UserApplications} />
+        </ProtectedRoute>
+      ),
+    },
+    {
       path: "/schedule_interviews",
       element: (
         <ProtectedRoute>
           <PageLayout customPage={ScheduleInterviews} />
         </ProtectedRoute>
-      )
+      ),
     },
     {
       path: "/calendar",
@@ -119,7 +155,7 @@ export const CreateRouter = () => {
         <ProtectedRoute>
           <PageLayout customPage={CalendarLoader} />
         </ProtectedRoute>
-      )
+      ),
     },
     { path: "*", element: <NotFound /> },
   ];

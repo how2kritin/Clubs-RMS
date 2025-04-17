@@ -1,0 +1,286 @@
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import "./ApplyToForm.css";
+
+interface Question {
+  id: number;
+  question_text: string;
+  question_order?: number;
+}
+
+interface FormDetails {
+  id: string;
+  name: string;
+  club_id: string;
+  deadline?: string;
+  questions: Question[];
+}
+
+const ApplyToForm: React.FC = () => {
+  const { formId } = useParams<{ formId: string }>();
+  const navigate = useNavigate();
+  const [form, setForm] = useState<FormDetails | null>(null);
+  const [responses, setResponses] = useState<
+    { question_id: number; answer_text: string }[]
+  >([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [_userInfo, setUserInfo] = useState<any>(null);
+  const [isDeadlinePassed, setIsDeadlinePassed] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Fetch form details and enforce RBAC when component mounts
+    const fetchForm = async () => {
+      try {
+        const response = await fetch(`/api/recruitment/forms/${formId}`, {
+          credentials: "include",
+        });
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: Failed to fetch form`);
+        }
+
+        const data: FormDetails = await response.json();
+
+        // Role-based access control: block members/admins from applying
+        try {
+          const roleResp = await fetch(`/api/user/user_role/${data.club_id}`, {
+            credentials: "include",
+          });
+          if (roleResp.ok) {
+            const roleData = await roleResp.json();
+            if (roleData.is_member || roleData.is_admin) {
+              navigate(`/forms/${formId}/applications`);
+              return; // Stop further processing
+            }
+          } else {
+            console.error(
+              `Error ${roleResp.status}: Failed to fetch user role`,
+            );
+          }
+        } catch (roleErr) {
+          console.error("Error fetching user role:", roleErr);
+        }
+
+        setForm(data);
+
+        // Initialize responses array
+        const initialResponses = data.questions.map((question) => ({
+          question_id: question.id,
+          answer_text: "",
+        }));
+        setResponses(initialResponses);
+
+        // Check if deadline has passed
+        if (data.deadline) {
+          const currentDate = new Date();
+          const deadlineDate = new Date(data.deadline);
+          setIsDeadlinePassed(currentDate > deadlineDate);
+        }
+      } catch (err) {
+        console.error("Error fetching form:", err);
+        setError("Failed to load form. Please try again later.");
+      }
+    };
+
+    // Fetch user info for autofill (non-blocking)
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch("/api/application/autofill-details", {
+          credentials: "include",
+        });
+        if (!response.ok) {
+          throw new Error(
+            `Error ${response.status}: Failed to fetch user info`,
+          );
+        }
+        const data = await response.json();
+        setUserInfo(data);
+      } catch (err) {
+        console.error("Error fetching user info:", err);
+      }
+    };
+
+    if (formId) {
+      fetchForm();
+      fetchUserInfo();
+    }
+  }, [formId, navigate]);
+
+  // ... (rest of the component remains unchanged)
+
+  const handleResponseChange = (questionId: number, value: string) => {
+    const newResponses = responses.map((response) =>
+      response.question_id === questionId
+        ? { ...response, answer_text: value }
+        : response,
+    );
+    setResponses(newResponses);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isDeadlinePassed) {
+      setError("The deadline for this application has passed.");
+      return;
+    }
+
+    const emptyResponses = responses.filter((r) => r.answer_text.trim() === "");
+    if (emptyResponses.length > 0) {
+      setError("Please fill in all fields before submitting.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const payload = { form_id: formId, responses };
+      const response = await fetch("/api/application/submit-application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        let message = `Error ${response.status}`;
+        try {
+          const errData = await response.json();
+          message = errData.detail || message;
+        } catch {}
+        throw new Error(message);
+      }
+
+      await response.json();
+      setSuccess("Application submitted successfully!");
+      setTimeout(() => navigate(-1), 2000);
+    } catch (err: any) {
+      console.error("Error submitting application:", err);
+      setError(
+        err.message || "Failed to submit application. Please try again later.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (error && !form) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <div className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 p-4 rounded-md">
+          {error}
+        </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-4 px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  if (!form) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <p className="text-gray-600 dark:text-gray-400">Loading form...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-4 max-w-3xl">
+      <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
+          {form.name}
+        </h1>
+
+        {form.deadline && (
+          <div
+            className={`mb-4 p-3 rounded-md ${
+              isDeadlinePassed
+                ? "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
+                : "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+            }`}
+          >
+            <p>
+              <span className="font-semibold">Deadline:</span>{" "}
+              {new Date(form.deadline).toLocaleString()}
+              {isDeadlinePassed && " (Deadline has passed)"}
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 p-3 rounded-md">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 p-3 rounded-md">
+            {success}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          {form.questions
+            .sort((a, b) => (a.question_order || 0) - (b.question_order || 0))
+            .map((question) => {
+              const response = responses.find(
+                (r) => r.question_id === question.id,
+              );
+
+              return (
+                <div key={question.id} className="mb-6">
+                  <label
+                    htmlFor={`question-${question.id}`}
+                    className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                  >
+                    {question.question_text}
+                  </label>
+                  <textarea
+                    id={`question-${question.id}`}
+                    value={response?.answer_text || ""}
+                    onChange={(e) =>
+                      handleResponseChange(question.id, e.target.value)
+                    }
+                    className="w-full px-3 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
+                    rows={4}
+                    disabled={isSubmitting || isDeadlinePassed}
+                    placeholder={`Enter your response ${isDeadlinePassed ? "(Deadline passed)" : ""}`}
+                  ></textarea>
+                </div>
+              );
+            })}
+
+          <div className="flex justify-between mt-8">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={`px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
+                isSubmitting || isDeadlinePassed
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              disabled={isSubmitting || isDeadlinePassed}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Application"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ApplyToForm;
