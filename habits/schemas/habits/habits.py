@@ -2,7 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
-class UserHabits(BaseModel):
+class UserHabitsData(BaseModel):
     uid: str
     hobbies: Optional[str] = None  # Allow null/empty string from frontend
     skills: Optional[List[str]] = None  # Allow empty list
