@@ -8,7 +8,7 @@ from routers.users_router import get_current_user
 from utils.database_utils import get_db
 from utils.session_utils import SESSION_COOKIE_NAME
 
-router = APIRouter()
+router = APIRouter(tags=["Calendar"])
 
 
 @router.get("/events", status_code=status.HTTP_200_OK, summary="Get Calendar Events",
