@@ -34,7 +34,7 @@ async def get_application_autofill_info_endpoint(user_data: dict = Depends(get_c
 
 @router.post("/submit-application", summary="Submit Application",
     description="Process a new application submission with responses to form questions.",
-    response_description="The created application record", status_code=201, response_model=ApplicationOut, )
+    response_description="The created application record", status_code=201)
 async def process_submitted_application_endpoint(form_data: dict = Body(..., example={"form_id": 123,
     "responses": [{"question_id": 1, "answer_text": "My response to question 1"},
         {"question_id": 2, "answer_text": "My response to question 2"}, ]},
