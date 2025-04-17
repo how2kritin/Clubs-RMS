@@ -74,7 +74,7 @@ const ApplyToForm: React.FC = () => {
         // Check if deadline has passed
         if (data.deadline) {
           const currentDate = new Date();
-          const deadlineDate = new Date(data.deadline);
+          const deadlineDate = new Date(data.deadline  + 'Z');
           setIsDeadlinePassed(currentDate > deadlineDate);
         }
       } catch (err) {
@@ -207,7 +207,7 @@ const ApplyToForm: React.FC = () => {
           >
             <p>
               <span className="font-semibold">Deadline:</span>{" "}
-              {new Date(form.deadline).toLocaleString()}
+              {new Date(form.deadline + 'Z').toLocaleString()}
               {isDeadlinePassed && " (Deadline has passed)"}
             </p>
           </div>
