@@ -1,20 +1,37 @@
+import datetime
 from typing import List, Type
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from models.applications.applications_model import Application
-from models.club_recruitment.club_recruitment_model import (Form, Question, )
+from models.club_recruitment.club_recruitment_model import (
+    Form,
+    Question,
+)
 from models.users.users_model import User
 from schemas.form.form import FormCreate, FormUpdate
 
 
 async def create_form(db: Session, form_data: FormCreate) -> Form:
-    db_form = Form(name=form_data.name, club_id=form_data.club_id, deadline=form_data.deadline)
+    # raise an exception if deadline is in the past
+    if form_data.deadline and (
+        form_data.deadline < datetime.datetime.now((datetime.timezone.utc))
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="deadline must be in the future",
+        )
 
+    db_form = Form(
+        name=form_data.name, club_id=form_data.club_id, deadline=form_data.deadline
+    )
     if form_data.questions:
         for question in form_data.questions:
-            db_question = Question(question_text=question.question_text, question_order=question.question_order, )
+            db_question = Question(
+                question_text=question.question_text,
+                question_order=question.question_order,
+            )
             db_form.questions.append(db_question)
 
     db.add(db_form)
@@ -44,7 +61,9 @@ async def update_form(db: Session, form_id: int, form_data: FormUpdate) -> Type[
 
         # add new questions
         for q in form_data.questions:
-            new_q = Question(question_text=q.question_text, question_order=q.question_order)
+            new_q = Question(
+                question_text=q.question_text, question_order=q.question_order
+            )
             form.questions.append(new_q)
 
     db.commit()
@@ -62,8 +81,12 @@ async def delete_form(db: Session, form_id: int) -> None:
 
 
 async def get_form_applicant_emails(db: Session, form_id: int) -> List[str]:
-    email_tuples = (db.query(User.email).join(Application, Application.user_id == User.uid).filter(
-        Application.form_id == form_id).all())
+    email_tuples = (
+        db.query(User.email)
+        .join(Application, Application.user_id == User.uid)
+        .filter(Application.form_id == form_id)
+        .all()
+    )
 
     emails = [email for (email,) in email_tuples]
     return emails

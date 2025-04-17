@@ -1,0 +1,85 @@
+.create-form {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.create-form h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.form-field {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-field input[type="text"],
+.form-field input[type="datetime-local"] {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.questions-container {
+  margin-top: 1rem;
+}
+
+.question-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.question-item input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.add-question-btn,
+.remove-question-btn,
+.submit-btn {
+  cursor: pointer;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.add-question-btn:hover,
+.remove-question-btn:hover,
+.submit-btn:hover {
+  background-color: #0056b3;
+}
+
+.remove-question-btn {
+  background-color: #dc3545;
+}
+
+.remove-question-btn:hover {
+  background-color: #c82333;
+}
+
+.warning {
+  max-width: 600px;
+  margin: 2rem auto;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #dc3545;
+}

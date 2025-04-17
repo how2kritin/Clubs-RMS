@@ -1,27 +1,25 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Link, useLocation, useNavigate} from 'react-router-dom';
-import { motion } from 'framer-motion';
+import {useEffect, useState} from 'react';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
+import {motion} from 'framer-motion';
 
-import { useAuth } from '../AuthProvider'; // Adjust the path if needed
+import {useAuth} from '../AuthProvider'; // Adjust the path if needed
 
 // Define the Navbar component
 const Navbar = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [activePath, setActivePath] = useState('');
-  const { isLoggedIn, logout } = useAuth();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [activePath, setActivePath] = useState('');
+    const {isLoggedIn, logout} = useAuth();
 
-  useEffect(() => {
-    setActivePath(location.pathname);
-  }, [location.pathname]);
+    useEffect(() => {
+        setActivePath(location.pathname);
+    }, [location.pathname]);
 
-  // Define the routes for the navbar.  This should match your router.
-  const navRoutes = [
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/profile', label: 'Profile' },
-    { path: '/clubs', label: 'Clubs' },
-    { path: '/calendar', label: 'Calendar' },
-  ];
+    // Define the routes for the navbar.  This should match your router.
+    const navRoutes = [{path: '/dashboard', label: 'Dashboard'}, {path: '/profile', label: 'Profile'}, {
+        path: '/clubs',
+        label: 'Clubs'
+    }, {path: '/calendar', label: 'Calendar'}, {path: '/my-applications', label: 'My Applications'},];
 
     // Only render the Navbar if the user is logged in
     if (!isLoggedIn) {
@@ -30,8 +28,7 @@ const Navbar = () => {
     const handleLogout = async () => {
         try {
             const response = await fetch("/api/user/logout", { //Removed fetch
-                method: "POST",
-                credentials: "include",
+                method: "POST", credentials: "include",
             });
             if (response.ok) {
                 // call logout to update the context state
@@ -45,15 +42,13 @@ const Navbar = () => {
         }
     };
 
-    return (
-        <nav className="bg-gray-100 dark:bg-gray-900 p-4">
+    return (<nav className="bg-gray-100 dark:bg-gray-900 p-4">
             <div className="container mx-auto flex justify-between items-center">
                 <div className="flex gap-6 justify-center flex-grow">  {/* Added flex-grow to navLinks div */}
-                    {navRoutes.map((route) => (
-                        <motion.div
+                    {navRoutes.map((route) => (<motion.div
                             key={route.path}
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            whileHover={{scale: 1.1}}
+                            transition={{type: "spring", stiffness: 400, damping: 17}}
                         >
                             <Link to={route.path} className={`
                                 text-black dark:text-gray-200
@@ -65,25 +60,23 @@ const Navbar = () => {
                             `}>
                                 {route.label}
                             </Link>
-                        </motion.div>
-                    ))}
+                        </motion.div>))}
                 </div>
                 <div className="absolute up-4 right-16">
-                <motion.button
-                    onClick={handleLogout}
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                    className="text-black dark:text-gray-200
+                    <motion.button
+                        onClick={handleLogout}
+                        whileHover={{scale: 1.1}}
+                        transition={{type: "spring", stiffness: 400, damping: 17}}
+                        className="text-black dark:text-gray-200
                             hover:text-white dark:hover:text-white
                             hover:bg-red-500 dark:hover:bg-red-500
                             px-4 py-2 rounded-md transition-colors duration-200"
-                >
-                    Logout
-                </motion.button>
+                    >
+                        Logout
+                    </motion.button>
                 </div>
             </div>
-        </nav>
-    );
+        </nav>);
 };
 
 

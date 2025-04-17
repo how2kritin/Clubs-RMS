@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # just import whatever routers you want to import from ./routers here.
-
 from routers import (
     recommendations_router,
     interviews_router,
@@ -15,8 +14,7 @@ from routers import (
     calendar_router,
 )
 from models.clubs.clubs_sync import sync_clubs
-from utils.database_utils import SessionLocal, init_db
-from utils.database_utils import reset_db, SessionLocal
+from utils.database_utils import SessionLocal, reset_db
 
 # FastAPI instance here, along with CORS middleware
 DEBUG = getenv("DEBUG_BACKEND", "False").lower() in ("true", "t", "1")
@@ -38,7 +36,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    reset_db()  # TODO: check
+    reset_db()
     db = SessionLocal()
 
     # sync clubs data from Clubs Council API

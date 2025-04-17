@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./FormView.css";
 
@@ -13,6 +13,7 @@ interface FormDetails {
   name: string;
   deadline?: string;
   questions: Question[];
+  club_id?: string; // For club member/admin check
 }
 
 function FormView() {
@@ -24,10 +25,14 @@ function FormView() {
   const [editedName, setEditedName] = useState<string>("");
   const [editedDeadline, setEditedDeadline] = useState<string>("");
   const [editedQuestions, setEditedQuestions] = useState<Question[]>([]);
+  const [isClubMember, setIsClubMember] = useState<boolean>(false);
+  const [isClubAdmin, setIsClubAdmin] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchForm() {
       try {
+        setIsLoading(true);
         const response = await fetch(`/api/recruitment/forms/${formId}`);
         const data: FormDetails = await response.json();
         setForm(data);
@@ -41,8 +46,37 @@ function FormView() {
         } else {
           setEditedDeadline("");
         }
+
+        // Check if the user is a club member.
+        if (data.club_id) {
+          const clubInfoResponse = await fetch("/api/user/user_club_info", {
+            credentials: "include",
+          });
+          if (clubInfoResponse.ok) {
+            const clubsData = await clubInfoResponse.json();
+            const isMember =
+              Array.isArray(clubsData) &&
+              clubsData.some((club: any) => club.cid === data.club_id);
+            setIsClubMember(isMember);
+          }
+
+          // Check if the user is a club admin.
+          const clubAdminResponse = await fetch(
+            `/api/user/user_role/${data.club_id}`,
+            {
+              credentials: "include",
+            },
+          );
+          if (clubAdminResponse.ok) {
+            const adminData = await clubAdminResponse.json();
+            setIsClubAdmin(adminData.is_admin);
+          }
+        }
+
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching form:", error);
+        setIsLoading(false);
       }
     }
 
@@ -123,9 +157,28 @@ function FormView() {
     }
   };
 
-  if (!form) {
+  // Handler to navigate to the application form
+  const handleApply = () => {
+    navigate(`/apply/${formId}`);
+  };
+
+  // Handler to navigate to applications list
+  const handleViewApplications = () => {
+    navigate(`/forms/${formId}/applications`);
+  };
+
+  if (isLoading) {
     return <p>Loading...</p>;
   }
+
+  if (!form) {
+    return <p>Form not found</p>;
+  }
+
+  // Check if deadline has passed
+  const isDeadlinePassed = form.deadline
+    ? new Date() > new Date(form.deadline)
+    : false;
 
   return (
     <div className="form-view">
@@ -196,9 +249,11 @@ function FormView() {
             >
               Cancel
             </button>
-            <button onClick={handleDelete} className="delete-btn">
-              Delete Form
-            </button>
+            {isClubAdmin && (
+              <button onClick={handleDelete} className="delete-btn">
+                Delete Form
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -210,6 +265,39 @@ function FormView() {
               ? new Date(form.deadline).toLocaleString()
               : "No deadline set"}
           </p>
+
+          {/* Action buttons for form */}
+          <div className="form-action-buttons">
+            {(isClubMember || isClubAdmin) && (
+              <button
+                className="view-applications-btn"
+                onClick={handleViewApplications}
+              >
+                View Applications
+              </button>
+            )}
+            <button
+              className="apply-btn"
+              onClick={handleApply}
+              disabled={isDeadlinePassed}
+            >
+              {isDeadlinePassed ? "Deadline Passed" : "Apply to Form"}
+            </button>
+            {(isClubAdmin || isClubMember) && (
+              <button
+                className="edit-form-btn"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Form
+              </button>
+            )}
+            {isClubAdmin && (
+              <button onClick={handleDelete} className="delete-btn">
+                Delete Form
+              </button>
+            )}
+          </div>
+
           <h3>Questions</h3>
           <ul className="questions-list">
             {form.questions.map((q) => (
@@ -219,10 +307,6 @@ function FormView() {
               </li>
             ))}
           </ul>
-          <button onClick={() => setIsEditing(true)}>Edit Form</button>
-          <button onClick={handleDelete} className="delete-btn">
-            Delete Form
-          </button>
         </div>
       )}
     </div>
