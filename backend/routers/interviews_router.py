@@ -35,7 +35,7 @@ router = APIRouter(
 
 
 @router.post(
-    "/schedule_interviews",
+    "/schedule_interviews/{form_id}",
     status_code=status.HTTP_200_OK,
     summary="Schedule Interview Slots",
     description="Creates a new interview schedule for a recruitment form with specified time slots and panel configuration.",
