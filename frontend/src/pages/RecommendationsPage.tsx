@@ -51,7 +51,6 @@ const RecommendationsPage: React.FC = () => {
           throw new Error(errorDetail);
         }
 
-        // If response is OK, parse the JSON
         const data: ClubRecommendation[] = await response.json();
 
         // --- THE CORE REQUIREMENT ---
@@ -108,4 +107,3 @@ const RecommendationsPage: React.FC = () => {
 };
 
 export default RecommendationsPage;
-

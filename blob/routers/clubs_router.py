@@ -40,7 +40,7 @@ async def get_five_club_information(db: Session = Depends(get_db)):
     - Returns list of all clubs with their details including name, description, and contact information
     """
     clubs = await fetch_info_about_all_clubs(db)
-    return []
+    return clubs
 
 
 @router.get(
