@@ -34,7 +34,7 @@ from models.users.users_config import (
 )
 from models.users.users_model import User
 from schemas.clubs.clubs import ClubOut
-from schemas.user.user import UserProfileUpdate
+from schemas.user.user import UserData, UserProfileUpdate
 from utils.database_utils import get_db
 from utils.session_utils import (
     SESSION_COOKIE_NAME,
@@ -133,7 +133,7 @@ async def login_cas(
     summary="Get Current User Info",
     description="Retrieves information about the currently authenticated user.",
     response_description="User information for the authenticated user",
-    response_model=Dict[str, Any],
+    response_model=UserData,
 )
 async def get_user_info(current_user: dict = Depends(get_current_user)):
     """
