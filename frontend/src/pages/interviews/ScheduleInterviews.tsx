@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useParams, useNavigate } from "react-router-dom";
 import './ScheduleInterviews.css';
 
 interface TimeRange {
@@ -28,6 +29,8 @@ interface ScheduleInterviewsFormResponse {
 }
 
 const ScheduleInterviews: React.FC = () => {
+  const { formId } = useParams<{ formId: string }>();
+  const navigate = useNavigate();
   const [dates, setDates] = useState<DateSchedule[]>([]);
   const [slotDuration, setSlotDuration] = useState<number>(30); // in minutes
   const [panelCount, setPanelCount] = useState<number>(1);
@@ -150,7 +153,7 @@ const ScheduleInterviews: React.FC = () => {
     };
 
     console.log('Form submitted:', formattedData);
-    fetch('/api/interviews/schedule_interviews', {
+    fetch(`/api/interviews/schedule_interviews/${formId}`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -168,6 +171,8 @@ const ScheduleInterviews: React.FC = () => {
       })
       .then(data => {
         console.log('Success:', data);
+        alert('Interview schedule saved successfully!');
+        navigate('/calendar');
       })
       .catch(error => {
         console.error('Error:', error);
@@ -325,15 +330,6 @@ const ScheduleInterviews: React.FC = () => {
         </button>
       </form>
 
-      {/* Display submitted data for demonstration */}
-      {/* {formData && (
-        <div className="submitted-data-container">
-          <h3 className="submitted-data-title">Submitted Data:</h3>
-          <pre className="json-display">
-            {JSON.stringify(formData, null, 2)}
-          </pre>
-        </div>
-      )} */}
     </div>
   );
 };

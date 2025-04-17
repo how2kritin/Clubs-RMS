@@ -10,6 +10,8 @@ from models.calendar.interview_models import (
     InterviewPanel,
 )
 from models.calendar.calendar_events_model import CalendarEvent, CalendarEventType
+from models.users.users_model import User
+from models.users.users_config import inform_users
 
 
 # Pydantic models to validate the incoming JSON data
@@ -126,7 +128,7 @@ def calculate_interview_slots(
 
 def create_schedule(
     club_id: str,
-    form_id: str,
+    form_id: int,
     slots: List[Tuple[datetime, datetime, datetime]],
     slot_length: int,
     num_panels: int,
@@ -222,7 +224,7 @@ def allocate_calendar_events(
     panel_ids: List[int],
     db: Session,
     club_id: str,
-    form_id: str,
+    form_id: int,
 ):
 
     # get all applications submitted for the form
@@ -285,6 +287,19 @@ def allocate_calendar_events(
                 db.add(calendar_event)
                 db.commit()
                 db.refresh(calendar_event)
+
+                # alert user that they have an interview scheduled
+                user_id = application.user_id
+                user = db.query(User).filter(User.uid == user_id).first()
+
+                inform_users(
+                    [user],
+                    "Interview Scheduled",
+                    f"Your interview for club {club_id} for form {form_id} "
+                    f"has been scheduled with panel {panel_id} on {interview_slot.date} "
+                    f"from {interview_slot.start_time} to {interview_slot.end_time}",
+                )
+
             else:
                 calendar_event = existing_calendar_event
 
