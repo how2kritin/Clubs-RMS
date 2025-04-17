@@ -67,7 +67,6 @@ const Dashboard: React.FC = () => {
       try {
         const response = await fetch("/recommendations/clubs", {
           method: "GET",
-          credentials: "include", // Send cookies
           headers: { "Content-Type": "application/json" },
         });
         if (!response.ok) {
@@ -80,7 +79,8 @@ const Dashboard: React.FC = () => {
           }
           throw new Error(`Failed to fetch recommendations: ${errorDetail}`);
         }
-        const data: Club[] = await response.json();
+        // const data: Club[] = await response.json();
+        const data: Club[] = [];
         setRecommendedClubs(data);
         console.log("Fetched recommendations:", data); // Keep console log for verification
       } catch (err: any) {
@@ -160,4 +160,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-

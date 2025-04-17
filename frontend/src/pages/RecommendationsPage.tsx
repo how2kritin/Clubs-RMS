@@ -30,7 +30,7 @@ const RecommendationsPage: React.FC = () => {
       console.log("Attempting to fetch recommendations...");
 
       try {
-        const response = await fetch("/habits/clubs", {
+        const response = await fetch("/recommendations/clubs", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -56,7 +56,6 @@ const RecommendationsPage: React.FC = () => {
           throw new Error(errorDetail);
         }
 
-        // If response is OK, parse the JSON
         const data: ClubRecommendation[] = await response.json();
 
         // --- THE CORE REQUIREMENT ---
@@ -113,4 +112,3 @@ const RecommendationsPage: React.FC = () => {
 };
 
 export default RecommendationsPage;
-

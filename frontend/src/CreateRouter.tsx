@@ -83,7 +83,7 @@ export const CreateRouter = () => {
       ),
     },
     {
-      path: "/recommendations",
+      path: "/recommendation",
       element: (
         <ProtectedRoute>
           <PageLayout customPage={RecommendationsPage} />
