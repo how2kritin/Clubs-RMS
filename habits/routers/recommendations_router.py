@@ -47,4 +47,4 @@ async def get_club_recommendations_for_user_strategy():
     """
     all_clubs = get_clubs()
 
-    return all_clubs[:5]
+    return all_clubs
