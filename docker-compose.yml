@@ -1,0 +1,72 @@
+version: "3.8"
+services:
+  blob-backend:
+    build:
+      context: ./blob
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./blob:/app
+    env_file:
+      - ./blob/envs/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@blob-postgres:5432/rms_db
+      - HABITS_URL=http://habits-backend:1238/api
+    depends_on:
+      blob-postgres:
+        condition: service_healthy
+
+  blob-postgres:
+    image: postgres:15
+    ports:
+      - "5433:5432"
+    volumes:
+      - blob_pg_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=rms_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  habits-backend:
+    build:
+      context: ./habits
+      dockerfile: Dockerfile
+    ports:
+      - "1238:1238"
+    volumes:
+      - ./habits:/app
+    env_file:
+      - ./habits/envs/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@habits-postgres:5432/rms_db
+    depends_on:
+      habits-postgres:
+        condition: service_healthy
+
+  habits-postgres:
+    image: postgres:15
+    ports:
+      - "5434:5432"
+    volumes:
+      - habits_pg_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=rms_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  blob_pg_data:
+  habits_pg_data:

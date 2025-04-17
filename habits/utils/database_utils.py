@@ -5,7 +5,10 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/rms_db")
+DATABASE_URL = getenv(
+    "DATABASE_URL", "postgresql://postgres:postgres@postgres:5434/rms_db"
+)
+print(DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -25,6 +28,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 # util to drop all tables (do not recreate them). returns true if successful, false if it fails.
 def drop_all_tables() -> bool:

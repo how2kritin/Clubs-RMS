@@ -12,22 +12,10 @@ from fastapi import HTTPException, Response
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse
 
-from models.users.users_model import User, UserHabits
+from models.users.users_model import User
 from models.clubs.clubs_model import Club
 from utils.mail_utils import send_email
 from utils.session_utils import create_session, SESSION_COOKIE_NAME, invalidate_session
-
-from sqlalchemy import event
-
-
-@event.listens_for(Session, "before_flush")
-def _ensure_habits(session, flush_context, instances):
-    # look at all new objects about to be flushed
-    for obj in session.new:
-        if isinstance(obj, User):
-            # if you haven’t already set .habits, give it one
-            if obj.habits is None:
-                obj.habits = UserHabits()
 
 
 def inform_users(subscribers: List, subject: str, content: str) -> None:

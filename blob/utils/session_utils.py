@@ -6,6 +6,7 @@ from fastapi import HTTPException, Cookie, Depends
 from pytz import timezone, UTC
 from sqlalchemy.orm import Session
 
+from models.users.habits_config import get_habits
 from models.users.session_model import Session as SessionModel
 from models.users.users_model import User
 from utils.crypto_utils import encrypt_data, decrypt_data
@@ -69,6 +70,8 @@ def validate_session(encrypted_session_id: str, db: Session):
         db.commit()
         return None, None
 
+    habits_data = get_habits(user.uid)  # type: ignore
+
     # return user data and original encrypted session ID
     user_data = {
         "uid": user.uid,
@@ -76,8 +79,8 @@ def validate_session(encrypted_session_id: str, db: Session):
         "first_name": user.first_name,
         "last_name": user.last_name,
         "roll_number": user.roll_number,
-        "hobbies": user.habits.hobbies,
-        "skills": user.habits.skills,
+        "hobbies": habits_data.hobbies,
+        "skills": habits_data.skills,
         "batch": user.batch,
         "profile_picture": user.profile_picture,
     }

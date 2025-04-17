@@ -27,7 +27,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    reset_db()
+    init_db()
     db = SessionLocal()
     db.close()
 
@@ -41,4 +41,4 @@ async def index():
 
 
 # mount the imported routers on a path here.
-app.include_router(habits_router.router, prefix="/api/habits")
+app.include_router(habits_router.router, prefix="/api")

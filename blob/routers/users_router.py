@@ -24,6 +24,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from models.users.habits_config import get_habits, update_habits
 from models.users.users_config import (
     get_clubs_by_user,
     is_admin_of_club,
@@ -320,14 +321,15 @@ async def update_user_profile(
     # Get the data provided in the request body, excluding fields not set by the client
     update_data = profile_update.model_dump(exclude_unset=True)
 
-    updated = False
-    # Update only the allowed fields if they are present in the update_data
+    habits_data = get_habits(user_uid)  # type: ignore
     if "hobbies" in update_data:
-        db_user.habits.hobbies = update_data["hobbies"]
-        updated = True
+        habits_data.hobbies = update_data["hobbies"]
     if "skills" in update_data:
-        db_user.habits.skills = update_data["skills"]
-        updated = True
+        habits_data.skills = update_data["skills"]
+    update_habits(habits_data)
+
+    # Update only the allowed fields if they are present in the update_data
+    updated = False
     if "profile_picture" in update_data:
         db_user.profile_picture = update_data["profile_picture"]
         updated = True
@@ -354,8 +356,8 @@ async def update_user_profile(
     return {
         "message": "Profile updated successfully",
         "updated_profile": {
-            "hobbies": db_user.habits.hobbies,
-            "skills": db_user.habits.skills,
+            "hobbies": habits_data.hobbies,
+            "skills": habits_data.skills,
             "profile_picture": db_user.profile_picture,
         },
     }

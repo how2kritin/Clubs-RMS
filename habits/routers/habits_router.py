@@ -8,7 +8,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from models.habits.habits_config import update_habits
+from models.habits.habits_config import get_or_create, update_habits
 from schemas.habits.habits import UserHabitsData
 from utils.database_utils import get_db
 
@@ -38,11 +38,11 @@ router = APIRouter(
     response_model=UserHabitsData,
 )
 def get_user_habits(uid: str, db: Session = Depends(get_db)):
-    return get_user_habits(uid, db)
+    return get_or_create(uid, db)
 
 
 @router.put(
-    "/habits/{uid}",
+    "/habits",
     status_code=status.HTTP_200_OK,
     summary="Update User Habits",
     description="Updates habits of the given uid",
