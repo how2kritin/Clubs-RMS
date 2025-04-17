@@ -10,7 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from models.users.users_model import User
 from models.clubs.clubs_model import Club
-from schemas.clubs.clubs import ClubOut 
+from schemas.clubs.clubs import ClubOut
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ else:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
         logger.info("Gemini API configured successfully.")
-        gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+        gemini_model = genai.GenerativeModel("gemini-1.5-flash")
     except Exception as e:
         logger.error(f"Failed to configure Gemini API: {e}")
 
@@ -41,11 +41,23 @@ async def get_recommendations_from_gemini(prompt: str) -> List[str]:
     recommended_cids = []
     try:
         logger.info("Sending request to Gemini API...")
-        safety_settings=[
-             {"category": "HARM_CATEGORY_HARASSMENT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-             {"category": "HARM_CATEGORY_HATE_SPEECH","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-             {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT","threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+        safety_settings = [
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
+            {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
+            {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+            },
         ]
         response = await gemini_model.generate_content_async(
             prompt, safety_settings=safety_settings
@@ -53,23 +65,26 @@ async def get_recommendations_from_gemini(prompt: str) -> List[str]:
         logger.debug(f"Raw Gemini Response Text: '{response.text}'")
         raw_cids = response.text.strip()
         if raw_cids:
-             recommended_cids = [cid.strip() for cid in raw_cids.split(',') if cid.strip()]
+            recommended_cids = [
+                cid.strip() for cid in raw_cids.split(",") if cid.strip()
+            ]
         logger.info(f"Parsed recommended CIDs from Gemini: {recommended_cids}")
     except Exception as e:
-        logger.error(f"Error calling Gemini API or parsing response: {e}", exc_info=True)
-        if 'response' in locals() and hasattr(response, 'prompt_feedback'):
-             logger.error(f"Gemini Prompt Feedback: {response.prompt_feedback}")
-        recommended_cids = [] 
+        logger.error(
+            f"Error calling Gemini API or parsing response: {e}", exc_info=True
+        )
+        if "response" in locals() and hasattr(response, "prompt_feedback"):
+            logger.error(f"Gemini Prompt Feedback: {response.prompt_feedback}")
+        recommended_cids = []
     return recommended_cids
+
 
 from .strategies import (
     RecommendationStrategy,
     HobbiesSkillsStrategy,
     CurrentClubsStrategy,
-    PopularClubsStrategy
+    PopularClubsStrategy,
 )
-
-
 
 
 class RecommendationContext:
@@ -87,16 +102,24 @@ class RecommendationContext:
 
     def _select_strategy(self) -> RecommendationStrategy:
         """Selects the appropriate strategy based on user data."""
-        if self._user.hobbies or (self._user.skills and self._user.skills != {} and self._user.skills != []):
-             logger.debug(f"Selecting HobbiesSkillsStrategy for user {self._user.uid}")
-             return HobbiesSkillsStrategy()
+        if self._user.habits.hobbies or (
+            self._user.habits.skills
+            and self._user.habits.skills != {}
+            and self._user.habits.skills != []
+        ):
+            logger.debug(f"Selecting HobbiesSkillsStrategy for user {self._user.uid}")
+            return HobbiesSkillsStrategy()
 
         try:
-            if self._user.clubs: 
-                logger.debug(f"Selecting CurrentClubsStrategy for user {self._user.uid}")
+            if self._user.clubs:
+                logger.debug(
+                    f"Selecting CurrentClubsStrategy for user {self._user.uid}"
+                )
                 return CurrentClubsStrategy()
         except SQLAlchemyError as e:
-            logger.error(f"Database error accessing user.clubs for user {self._user.uid}: {e}. Falling back.")
+            logger.error(
+                f"Database error accessing user.clubs for user {self._user.uid}: {e}. Falling back."
+            )
 
         logger.debug(f"Selecting PopularClubsStrategy for user {self._user.uid}")
         return PopularClubsStrategy()
@@ -120,25 +143,36 @@ class RecommendationContext:
         """
         all_clubs = self._fetch_all_clubs()
         if not all_clubs and not isinstance(self._strategy, PopularClubsStrategy):
-             logger.warning(f"No clubs available to recommend for user {self._user.uid}.")
-             return []
+            logger.warning(
+                f"No clubs available to recommend for user {self._user.uid}."
+            )
+            return []
 
-        logger.info(f"Using strategy {self._strategy.__class__.__name__} for user {self._user.uid}.")
+        logger.info(
+            f"Using strategy {self._strategy.__class__.__name__} for user {self._user.uid}."
+        )
 
         try:
             recommended_clubs: List[Club] = await self._strategy.get_recommendations(
-                self._user,
-                all_clubs, 
-                self._db
+                self._user, all_clubs, self._db
             )
 
-            logger.info(f"Strategy {self._strategy.__class__.__name__} returned {len(recommended_clubs)} recommendations for user {self._user.uid}.")
-            if not isinstance(recommended_clubs, list) or not all(isinstance(c, Club) for c in recommended_clubs):
-                 logger.error(f"Strategy {self._strategy.__class__.__name__} did not return a valid List[Club]. Returning empty list.")
-                 return []
+            logger.info(
+                f"Strategy {self._strategy.__class__.__name__} returned {len(recommended_clubs)} recommendations for user {self._user.uid}."
+            )
+            if not isinstance(recommended_clubs, list) or not all(
+                isinstance(c, Club) for c in recommended_clubs
+            ):
+                logger.error(
+                    f"Strategy {self._strategy.__class__.__name__} did not return a valid List[Club]. Returning empty list."
+                )
+                return []
 
             return recommended_clubs
 
         except Exception as e:
-             logger.error(f"Error executing strategy {self._strategy.__class__.__name__} for user {self._user.uid}: {e}", exc_info=True)
-             return []
+            logger.error(
+                f"Error executing strategy {self._strategy.__class__.__name__} for user {self._user.uid}: {e}",
+                exc_info=True,
+            )
+            return []
