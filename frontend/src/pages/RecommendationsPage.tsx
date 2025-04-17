@@ -30,16 +30,11 @@ const RecommendationsPage: React.FC = () => {
       console.log("Attempting to fetch recommendations...");
 
       try {
-        const response = await fetch("/habits/clubs", {
+        const response = await fetch("/recommendations/clubs", {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            // Add other headers if necessary, but 'credentials' handles cookies
-          },
-          // IMPORTANT: Include credentials (cookies) for authentication
-          credentials: "include",
+          credentials: "include", // Send cookies
+          headers: { "Content-Type": "application/json" },
         });
-
         // Log raw response status for debugging
         console.log("Response Status:", response.status, response.statusText);
 

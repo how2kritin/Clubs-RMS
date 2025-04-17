@@ -12,12 +12,12 @@ export default defineConfig({
         secure: false,
       },
       "/habits": {
-        target: "http://localhost:1238",
+        target: "http://localhost:1238/",
         changeOrigin: true,
         secure: false,
       },
       "/recommendations": {
-        target: "http://localhost:1238",
+        target: "http://localhost:1238/",
         changeOrigin: true,
         secure: false,
       },

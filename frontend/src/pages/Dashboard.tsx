@@ -30,71 +30,80 @@ const Dashboard: React.FC = () => {
   >(null);
 
   useEffect(() => {
-    // --- Fetch User's Clubs ---
-    const fetchMyClubs = async () => {
-      setIsLoadingMyClubs(true);
-      setErrorMyClubs(null);
-      try {
-        const response = await fetch("/api/user/user_club_info", {
-          method: "GET",
-          credentials: "include", // Send cookies
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!response.ok) {
-          let errorDetail = `Error ${response.status}`;
-          try {
-            const data = await response.json();
-            errorDetail = data.detail || errorDetail;
-          } catch (e) {
-            /* ignore */
-          }
-          throw new Error(`Failed to fetch user's clubs: ${errorDetail}`);
-        }
-        const data: Club[] = await response.json();
-        setMyClubs(data);
-      } catch (err: any) {
-        console.error("Error fetching user's clubs:", err);
-        setErrorMyClubs(err.message);
-      } finally {
-        setIsLoadingMyClubs(false);
-      }
+    const fetchData = async () => {
+      // First fetch my clubs
+      await fetchMyClubs();
+
+      // Only after fetchMyClubs completes, fetch recommendations
+      await fetchRecommendations();
     };
 
-    // --- Fetch Recommended Clubs ---
-    const fetchRecommendations = async () => {
-      setIsLoadingRecommendations(true);
-      setErrorRecommendations(null);
-      try {
-        const response = await fetch("/recommendations/clubs", {
-          method: "GET",
-          credentials: "include", // Send cookies
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!response.ok) {
-          let errorDetail = `Error ${response.status}`;
-          try {
-            const data = await response.json();
-            errorDetail = data.detail || errorDetail;
-          } catch (e) {
-            /* ignore */
-          }
-          throw new Error(`Failed to fetch recommendations: ${errorDetail}`);
-        }
-        const data: Club[] = await response.json();
-        setRecommendedClubs(data);
-        console.log("Fetched recommendations:", data); // Keep console log for verification
-      } catch (err: any) {
-        console.error("Error fetching recommendations:", err);
-        setErrorRecommendations(err.message);
-      } finally {
-        setIsLoadingRecommendations(false);
-      }
-    };
-
-    // Fetch both sets of data when component mounts
-    fetchMyClubs();
-    fetchRecommendations();
+    fetchData();
   }, []); // Empty dependency array ensures this runs only once on mount
+
+  const fetchMyClubs = async () => {
+    setIsLoadingMyClubs(true);
+    setErrorMyClubs(null);
+    try {
+      const response = await fetch("/api/user/user_club_info", {
+        method: "GET",
+        credentials: "include", // Send cookies
+        headers: {
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (!response.ok) {
+        let errorDetail = `Error ${response.status}`;
+        try {
+          const data = await response.json();
+          errorDetail = data.detail || errorDetail;
+        } catch (e) { /* ignore */ }
+        throw new Error(`Failed to fetch my clubs: ${errorDetail}`);
+      }
+
+      const data: Club[] = await response.json();
+      setMyClubs(data);
+      console.log("Fetched my clubs:", data); // Keep console log for verification
+    } catch (err: any) {
+      console.error("Error fetching my clubs:", err);
+      setErrorMyClubs(err.message);
+    } finally {
+      setIsLoadingMyClubs(false);
+    }
+  };
+
+  const fetchRecommendations = async () => {
+    setIsLoadingRecommendations(true);
+    setErrorRecommendations(null);
+    try {
+      const response = await fetch("/recommendations/clubs", {
+        method: "GET",
+        credentials: "include", // Send cookies
+        headers: {
+          "Content-Type": "application/json"
+        },
+      });
+
+      if (!response.ok) {
+        let errorDetail = `Error ${response.status}`;
+        try {
+          const data = await response.json();
+          errorDetail = data.detail || errorDetail;
+        } catch (e) { /* ignore */ }
+        throw new Error(`Failed to fetch recommendations: ${errorDetail}`);
+      }
+
+      const data: Club[] = await response.json();
+      setRecommendedClubs(data);
+      console.log("Fetched recommendations:", data); // Keep console log for verification
+    } catch (err: any) {
+      console.error("Error fetching recommendations:", err);
+      setErrorRecommendations(err.message);
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
 
   // Helper function to render a section (My Clubs or Recommendations)
   const renderClubSection = (

@@ -28,7 +28,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    reset_db()
+    init_db()
     db = SessionLocal()
     db.close()
 
