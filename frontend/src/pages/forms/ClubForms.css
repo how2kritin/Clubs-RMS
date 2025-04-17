@@ -1,101 +1,239 @@
-.club-forms {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 1rem;
-  background-color: #fff;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+/* Club Page Container */
+.club-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-.club-forms h2 {
-  text-align: center;
-  margin-bottom: 1.5rem;
+/* Club Overview Section */
+.club-overview-section {
+  margin-bottom: 40px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.club-banner {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.club-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.club-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.club-logo {
+  width: 100px;
+  height: 100px;
+  margin-right: 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #eaeaea;
+}
+
+.club-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.club-info {
+  flex-grow: 1;
+}
+
+.club-info h1 {
+  font-size: 28px;
+  margin: 0 0 8px 0;
   color: #333;
 }
 
-/* Subscribe/Unsubscribe button */
+.club-tagline {
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 12px 0;
+  font-style: italic;
+}
+
+.club-category {
+  display: inline-block;
+  background-color: #e9f5ff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #0077cc;
+}
+
+.club-description {
+  margin-bottom: 24px;
+}
+
+.club-description h3 {
+  font-size: 18px;
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.club-description p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #444;
+  margin: 0;
+}
+
+.club-socials {
+  margin-bottom: 24px;
+}
+
+.club-socials h3 {
+  font-size: 18px;
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.social-link {
+  display: inline-block;
+  background-color: #eaeaea;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.social-link:hover {
+  background-color: #d8d8d8;
+}
+
+.club-contact {
+  color: #666;
+}
+
+.club-contact a {
+  color: #0077cc;
+  text-decoration: none;
+}
+
+.club-contact a:hover {
+  text-decoration: underline;
+}
+
+/* Club Forms Section */
+.club-forms-section {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.club-forms h2 {
+  font-size: 24px;
+  margin: 0 0 20px 0;
+  color: #333;
+}
+
+.button-row {
+  display: flex;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
 .subscribe-button {
-  display: block;
-  margin: 0 auto 1.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border: none;
+  padding: 8px 16px;
   border-radius: 4px;
+  border: none;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: background-color 0.2s;
 }
 
 .subscribe-button.subscribe {
-  background-color: #0077cc;
+  background-color: #28a745;
   color: #fff;
-}
-
-.subscribe-button.subscribe:hover:not(:disabled) {
-  opacity: 0.85;
 }
 
 .subscribe-button.unsubscribe {
-  background-color: #e53935;
+  background-color: #dc3545;
   color: #fff;
 }
 
-.subscribe-button.unsubscribe:hover:not(:disabled) {
-  opacity: 0.85;
+.subscribe-button:hover {
+  opacity: 0.9;
 }
 
-.subscribe-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.create-form-button {
+  padding: 8px 16px;
+  background-color: #0077cc;
+  color: #fff;
+  border-radius: 4px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.create-form-button:hover {
+  background-color: #0066b3;
 }
 
 .forms-list {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .forms-list li {
-  margin: 0.75rem 0;
+  padding: 12px;
+  border-bottom: 1px solid #eaeaea;
+  transition: background-color 0.2s;
 }
 
-.forms-list li a {
-  text-decoration: none;
+.forms-list li:last-child {
+  border-bottom: none;
+}
+
+.forms-list li:hover {
+  background-color: #f8f9fa;
+}
+
+.forms-list a {
   color: #0077cc;
-  font-weight: 500;
-  transition: color 0.3s ease;
+  text-decoration: none;
+  font-size: 16px;
 }
 
-.forms-list li a:hover {
-  color: #005fa3;
+.forms-list a:hover {
+  text-decoration: underline;
 }
 
-/* Error message */
-.error {
-  color: #e53935;
+.loading-text {
   text-align: center;
+  font-size: 16px;
+  color: #666;
+  padding: 20px;
 }
 
-/* Flex container for top buttons */
-.create-form-button {
-  display: block;
-  margin: 0 auto 1.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border: none;
+.error {
+  color: #dc3545;
+  padding: 10px;
   border-radius: 4px;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-  background-color: #0736df;
-  color: #fff;
-}
-
-.create-form-button:hover:not(:disabled) {
-  opacity: 0.85;
-}
-
-.create-form-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  background-color: #f8d7da;
+  margin-bottom: 20px;
 }
