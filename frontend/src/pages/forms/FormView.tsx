@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import "./FormView.css";
 
 interface Question {
@@ -54,19 +54,14 @@ function FormView() {
           });
           if (clubInfoResponse.ok) {
             const clubsData = await clubInfoResponse.json();
-            const isMember =
-              Array.isArray(clubsData) &&
-              clubsData.some((club: any) => club.cid === data.club_id);
+            const isMember = Array.isArray(clubsData) && clubsData.some((club: any) => club.cid === data.club_id);
             setIsClubMember(isMember);
           }
 
           // Check if the user is a club admin.
-          const clubAdminResponse = await fetch(
-            `/api/user/user_role/${data.club_id}`,
-            {
-              credentials: "include",
-            },
-          );
+          const clubAdminResponse = await fetch(`/api/user/user_role/${data.club_id}`, {
+            credentials: "include",
+          },);
           if (clubAdminResponse.ok) {
             const adminData = await clubAdminResponse.json();
             setIsClubAdmin(adminData.is_admin);
@@ -106,20 +101,16 @@ function FormView() {
 
   const handleSave = async () => {
     const payload = {
-      name: editedName,
-      // If the deadline field is empty, send null.
+      name: editedName, // If the deadline field is empty, send null.
       deadline: editedDeadline ? new Date(editedDeadline).toISOString() : null,
       questions: editedQuestions.map((q, index) => ({
-        question_text: q.question_text,
-        question_order: index + 1,
+        question_text: q.question_text, question_order: index + 1,
       })),
     };
 
     try {
       const response = await fetch(`/api/recruitment/forms/${formId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -185,146 +176,132 @@ function FormView() {
     ? new Date().getTime() > new Date(form.deadline + 'Z').getTime()
     : false;
 
-  return (
-    <div className="form-view">
-      {isEditing ? (
-        <div>
-          {/* Editable form header inputs */}
-          <div className="form-header-edit">
-            <label>
-              <strong>Form Name:</strong>{" "}
-              <input
-                type="text"
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                placeholder="Enter form name"
-              />
-            </label>
-            <label>
-              <strong>Deadline:</strong>{" "}
-              <input
-                type="datetime-local"
-                value={editedDeadline}
-                onChange={(e) => setEditedDeadline(e.target.value)}
-              />
-            </label>
-          </div>
+  return (<div className="form-view">
+    {isEditing ? (<div>
+      {/* Editable form header inputs */}
+      <div className="form-header-edit">
+        <label>
+          <strong>Form Name:</strong>{" "}
+          <input
+            type="text"
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+            placeholder="Enter form name"
+          />
+        </label>
+        <label>
+          <strong>Deadline:</strong>{" "}
+          <input
+            type="datetime-local"
+            value={editedDeadline}
+            onChange={(e) => setEditedDeadline(e.target.value)}
+          />
+        </label>
+      </div>
 
-          <h3>Questions</h3>
-          <ul className="questions-list">
-            {editedQuestions.map((q, index) => (
-              <li key={q.id || index}>
-                <strong>{index + 1}. </strong>
-                <input
-                  type="text"
-                  value={q.question_text}
-                  onChange={(e) => handleQuestionChange(index, e.target.value)}
-                  placeholder="Enter question text..."
-                />
-                <button
-                  className="remove-btn"
-                  onClick={() => handleRemoveQuestion(index)}
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div className="action-buttons">
-            <button onClick={handleAddQuestion} className="add-btn">
-              Add Question
-            </button>
-          </div>
-          <div className="edit-buttons">
-            <button onClick={handleSave}>Save</button>
-            <button
-              onClick={() => {
-                // Reset all changes.
-                setEditedName(form.name);
-                if (form.deadline) {
-                  const dt = new Date(form.deadline);
-                  const isoLocal = dt.toISOString().slice(0, 16);
-                  setEditedDeadline(isoLocal);
-                } else {
-                  setEditedDeadline("");
-                }
-                setEditedQuestions(form.questions);
-                setIsEditing(false);
-              }}
-            >
-              Cancel
-            </button>
-            {isClubAdmin && (
-              <button onClick={handleDelete} className="delete-btn">
-                Delete Form
-              </button>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div>
-          <h2>{form.name}</h2>
-          <p>
-            <strong>Deadline:</strong>{" "}
-            {form.deadline
-              ? new Date(form.deadline).toLocaleString()
-              : "No deadline set"}
-          </p>
+      <h3>Questions</h3>
+      <ul className="questions-list">
+        {editedQuestions.map((q, index) => (<li key={q.id || index}>
+          <strong>{index + 1}. </strong>
+          <input
+            type="text"
+            value={q.question_text}
+            onChange={(e) => handleQuestionChange(index, e.target.value)}
+            placeholder="Enter question text..."
+          />
+          <button
+            className="remove-btn"
+            onClick={() => handleRemoveQuestion(index)}
+          >
+            Remove
+          </button>
+        </li>))}
+      </ul>
+      <div className="action-buttons">
+        <button onClick={handleAddQuestion} className="add-btn">
+          Add Question
+        </button>
+      </div>
+      <div className="edit-buttons">
+        <button onClick={handleSave}>Save</button>
+        <button
+          onClick={() => {
+            // Reset all changes.
+            setEditedName(form.name);
+            if (form.deadline) {
+              const dt = new Date(form.deadline);
+              const isoLocal = dt.toISOString().slice(0, 16);
+              setEditedDeadline(isoLocal);
+            } else {
+              setEditedDeadline("");
+            }
+            setEditedQuestions(form.questions);
+            setIsEditing(false);
+          }}
+        >
+          Cancel
+        </button>
+        {isClubAdmin && (<button onClick={handleDelete} className="delete-btn">
+          Delete Form
+        </button>)}
+      </div>
+    </div>) : (<div>
+      <h2>{form.name}</h2>
+      <p>
+        <strong>Deadline:</strong>{" "}
+        {form.deadline ? new Date(form.deadline).toLocaleString() : "No deadline set"}
+      </p>
 
-          {/* Action buttons for form */}
-          <div className="form-action-buttons">
-            {(isClubMember || isClubAdmin) && (
-              <button
-                className="view-applications-btn"
-                onClick={handleViewApplications}
-              >
-                View Applications
-              </button>
-            )}
-            <button
-              className="apply-btn"
-              onClick={handleApply}
-              disabled={isDeadlinePassed}
-            >
-              {isDeadlinePassed ? "Deadline Passed" : "Apply to Form"}
-            </button>
-            {(isClubAdmin || isClubMember) && (
-              <button
-                className="edit-form-btn"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Form
-              </button>
-            )}
-            {isClubAdmin && (
-              <button onClick={handleDelete} className="delete-btn">
-                Delete Form
-              </button>
-            )}
-            {isClubAdmin && (
-              <button
-                className="schedule-interviews-btn"
-                onClick={handleScheduleInterviews}
-                disabled={!isDeadlinePassed}
-              >
-                {isDeadlinePassed ? "Schedule Interviews" : "Form Still Open"}
-              </button>
-            )}
-          </div>
+      {/* Action buttons for form */}
+      <div className="form-action-buttons">
+        {(isClubMember || isClubAdmin) && (
+          <button
+            className="view-applications-btn"
+            onClick={handleViewApplications}
+          >
+            View Applications
+          </button>
+        )}
+        <button
+          className="apply-btn"
+          onClick={handleApply}
+          disabled={isDeadlinePassed}
+        >
+          {isDeadlinePassed ? "Deadline Passed" : "Apply to Form"}
+        </button>
+        {(isClubAdmin || isClubMember) && (
+          <button
+            className="edit-form-btn"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit Form
+          </button>
+        )}
+        {isClubAdmin && (
+          <button onClick={handleDelete} className="delete-btn">
+            Delete Form
+          </button>
+        )}
+        {isClubAdmin && (
+          <button
+            className="schedule-interviews-btn"
+            onClick={handleScheduleInterviews}
+            disabled={!isDeadlinePassed}
+          >
+            {isDeadlinePassed ? "Schedule Interviews" : "Form Still Open"}
+          </button>
+        )}
+      </div>
 
-          <h3>Questions</h3>
-          <ul className="questions-list">
-            {form.questions.map((q) => (
-              <li key={q.id}>
-                <strong>{q.question_order}. </strong>
-                {q.question_text}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
+      <h3>Questions</h3>
+      <ul className="questions-list">
+        {form.questions.map((q) => (<li key={q.id}>
+          <strong>{q.question_order}. </strong>
+          {q.question_text}
+        </li>))}
+      </ul>
+    </div>)}
+  </div>);
 }
 
 export default FormView;

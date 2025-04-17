@@ -19,12 +19,25 @@ import FormApplicationsOverview from "./pages/applications/FormApplicationsOverv
 import ApplicationDetail from "./pages/applications/ApplicationDetail.tsx";
 import UserApplications from "./pages/applications/UserApplications.tsx";
 
+const LoadingPage: React.FC = () => {
+  return (
+    <div className="flex items-center justify-center h-screen bg-blue-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin dark:border-blue-400"></div>
+        <p className="text-blue-700 dark:text-blue-300 text-lg font-medium">
+          Loading, please wait...
+        </p>
+      </div>
+    </div>
+  );
+};
+
 // ProtectedRoute component to guard private routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoggedIn } = useAuth();
   console.log("isLoggedIn", isLoggedIn);
   if (isLoggedIn === null) {
-    return <p>some loading component</p>;
+    return <LoadingPage />;
   } else if (isLoggedIn === true) {
     return (
       <>

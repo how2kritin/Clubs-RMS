@@ -50,7 +50,7 @@ class Application(Base):
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.ongoing)
 
     # TODO: referential integrity through user ids?
-    endorser_ids = Column(ARRAY(Integer), default=[])
+    endorser_ids = Column(ARRAY(String), default=[])
 
 
 class Response(Base):

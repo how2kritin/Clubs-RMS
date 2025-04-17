@@ -1,0 +1,2 @@
+1. For club admins, I am gonna send emails for shortlisting anyways so will just wait 5 mins before sending it and show them an alert telling that an email reg acceptance/rejection will be sent in 5 mins
+2. docs for modules?????

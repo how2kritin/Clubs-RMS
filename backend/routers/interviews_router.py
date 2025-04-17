@@ -18,30 +18,77 @@ from models.calendar.interviews_config import (
     parse_schedule_interview_form_data,
     calculate_interview_slots,
     create_schedule,
+    allocate_calendar_events,
 )
 from routers.users_router import get_current_user
 from utils.database_utils import get_db
 from utils.session_utils import SESSION_COOKIE_NAME
 
-from models.calendar.interviews_config import (
-    ScheduleInterviewFormResponseStr,
-    ScheduleInterviewFormResponseDatetime,
-    parse_schedule_interview_form_data,
-    calculate_interview_slots,
-    create_schedule,
-    allocate_calendar_events,
+router = APIRouter(
+    tags=["Interviews"],
+    responses={
+        401: {"description": "Not authenticated"},
+        403: {"description": "Forbidden - insufficient permissions"},
+        500: {"description": "Internal server error"},
+    },
 )
 
-router = APIRouter()
 
-
-@router.post("/schedule_interviews/{form_id}", status_code=status.HTTP_200_OK)
+@router.post(
+    "/schedule_interviews",
+    status_code=status.HTTP_200_OK,
+    summary="Schedule Interview Slots",
+    description="Creates a new interview schedule for a recruitment form with specified time slots and panel configuration.",
+    response_description="Confirmation of successful interview scheduling",
+    responses={
+        400: {
+            "description": "Invalid time slots: Overlapping intervals or other validation errors"
+        },
+        403: {
+            "description": "User does not have permission to schedule interviews for this club"
+        },
+    },
+)
 async def schedule_interviews(
     form_id: int,
     encrypted_session_id: str = Cookie(None, alias=SESSION_COOKIE_NAME),
     db: Session = Depends(get_db),
-    form_data: ScheduleInterviewFormResponseStr = Body(...),
+    form_data: ScheduleInterviewFormResponseStr = Body(
+        ...,
+        description="Interview schedule configuration including dates, time slots, panel count, and slot duration",
+        example={
+            "formId": 123,
+            "interviewSchedule": {
+                "dates": ["2025-04-20", "2025-04-21"],
+                "timeSlots": [
+                    {"startTime": "10:00", "endTime": "12:00"},
+                    {"startTime": "14:00", "endTime": "16:00"},
+                ],
+                "interviewPanelCount": 3,
+                "slotDurationMinutes": 30,
+            },
+        },
+    ),
 ):
+    """
+    Create a new interview schedule for a recruitment form.
+
+    This endpoint:
+    1. Parses and validates the interview schedule data
+    2. Calculates all possible interview slots based on the provided configuration
+    3. Creates database records for the schedule, slots, and panels
+    4. Allocates applicants to interview slots and generates calendar events
+
+    The schedule configuration includes:
+    - Dates when interviews will be conducted
+    - Time slots on each date (can have multiple slots per day with breaks in between)
+    - Number of parallel interview panels
+    - Duration of each interview slot in minutes
+
+    - Authentication required: User must be logged in
+    - Authorization required: User must be an admin of the club associated with the form
+    - Returns confirmation of successful scheduling and creation of calendar events
+    """
     print("Received interview schedule data:")
     print(json.dumps(form_data.model_dump(), indent=2))
     print("Form ID:", form_id)
@@ -63,6 +110,7 @@ async def schedule_interviews(
             detail="You are not allowed to schedule interviews for this club.",
         )
 
+    # deadline check
     deadline = recruitment_form.deadline
     if deadline.tzinfo is None:
         deadline = deadline.replace(tzinfo=timezone.utc)
@@ -85,7 +133,7 @@ async def schedule_interviews(
             detail="Invalid time slots: overlapping intervals detected. Please enter correct time slots.",
         )
 
-    # calculate interview slots and create slots, panels and a schedule
+    # Calculate interview slots based on the provided configuration
     interview_slots = calculate_interview_slots(form_data_parsed)
 
     schedule_id, slot_ids, panel_ids = create_schedule(
@@ -154,4 +202,13 @@ async def schedule_interviews(
     print("Allocated calendar events successfully")
     print(event_ids)
 
-    return {"message": "Interviews scheduled successfully"}
+    return {
+        "success": True,
+        "message": "Interviews scheduled successfully",
+        "details": {
+            "schedule_id": schedule_id,
+            "slot_count": len(slot_ids),
+            "panel_count": len(panel_ids),
+            "event_count": len(event_ids),
+        },
+    }

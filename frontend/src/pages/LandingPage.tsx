@@ -31,7 +31,9 @@ const LandingPage = () => {
           credentials: "include",
         });
         if (response.ok) {
+          const { logoutUrl } = await response.json();
           console.log("actually logged out from backend");
+          window.location.href = logoutUrl;
         } else {
           console.error("Logout failed: ", response.statusText);
         }

@@ -55,30 +55,10 @@ async def index():
 
 
 # mount the imported routers on a path here.
-app.include_router(users_router.router, prefix="/api/user", tags=["User Management"])
-app.include_router(clubs_router.router, prefix="/api/club", tags=["Club Management"])
-app.include_router(
-    applications_router.router,
-    prefix="/api/application",
-    tags=["Application Management"],
-)
-app.include_router(
-    recruitment_router.router,
-    prefix="/api/recruitment",
-    tags=["Club Recruitment Management"],
-)
-app.include_router(
-    recommendations_router.router,
-    prefix="/api",
-    tags=["Recommendations"],
-)
-app.include_router(
-    interviews_router.router,
-    prefix="/api/interviews",
-    tags=["Interview Scheduling"],
-)
-app.include_router(
-    calendar_router.router,
-    prefix="/api/calendar",
-    tags=["Events Calendar"],
-)
+app.include_router(users_router.router, prefix="/api/user")
+app.include_router(clubs_router.router, prefix="/api/club")
+app.include_router(applications_router.router, prefix="/api/application")
+app.include_router(recruitment_router.router, prefix="/api/recruitment")
+app.include_router(calendar_router.router, prefix="/api/calendar")
+app.include_router(recommendations_router.router, prefix="/api")
+app.include_router(interviews_router.router, prefix="/api/interviews")
