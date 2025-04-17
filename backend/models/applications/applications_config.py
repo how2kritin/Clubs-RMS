@@ -9,6 +9,7 @@ from models.applications.applications_model import Application, ApplicationStatu
 from models.applications.applications_model import Response
 from models.club_recruitment.club_recruitment_model import Form, Question
 from models.clubs.clubs_model import club_members, Club
+from models.users.users_config import is_member_of_club, is_admin_of_club
 from models.users.users_model import User
 from schemas.applications.applications import (
     ApplicationStatusUpdate,
@@ -123,16 +124,7 @@ async def _check_application_access(
             )
 
         # check if the user is a member of the club
-        club_membership = (
-            db.query(club_members)
-            .filter(
-                and_(
-                    club_members.c.club_id == form.club_id,
-                    club_members.c.user_id == user_id,
-                )
-            )
-            .first()
-        )
+        club_membership = is_member_of_club(user_id, form.club_id, db) or is_admin_of_club(user_id, form.club_id, db)
 
         if not club_membership:
             raise HTTPException(
@@ -185,20 +177,9 @@ async def get_application_details(
         responses_data.sort(key=lambda x: (x.question_order or float("inf")))
 
         current_user_id = result["user_id"]
-        is_club_member = False
 
         if form.club_id:
-            club_membership = (
-                db.query(club_members)
-                .filter(
-                    and_(
-                        club_members.c.club_id == form.club_id,
-                        club_members.c.user_id == current_user_id,
-                    )
-                )
-                .first()
-            )
-            is_club_member = club_membership is not None
+            is_club_member = is_member_of_club(current_user_id, form.club_id, db) or is_admin_of_club(current_user_id, form.club_id, db)
 
         application_details = ApplicationDetailOut(
             id=application.id,
@@ -255,7 +236,7 @@ async def get_application_status(
 
 
 async def update_application_status(
-    db: Session, application_id: int, status_update: ApplicationStatusUpdate
+    db: Session, application_id: int, status_update: ApplicationStatusUpdate, user_data = Depends(get_current_user)
 ):
     application = db.query(Application).filter(Application.id == application_id).first()
     if not application:
@@ -266,12 +247,31 @@ async def update_application_status(
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
 
-    # if we are before the deadline, do not allow status update
-    if form.deadline and form.deadline > datetime.datetime.now(datetime.timezone.utc):  # type: ignore
+    club_cid = form.club_id
+
+    # only club admins should be able to update application status
+    club_admin = is_admin_of_club(user_data.get("uid"), club_cid, db)
+
+    if not club_admin:
         raise HTTPException(
-            status_code=400,
-            detail="cannot update application status before the deadline",
+            status_code=403, detail="Only club admins can update application status"
         )
+
+    # if we are before the deadline, do not allow status update
+    if form.deadline:
+        # convert form.deadline to offset-aware if it's offset-naive
+        deadline = form.deadline
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        # if deadline doesn't have timezone info, add UTC timezone
+        if deadline.tzinfo is None:
+            deadline = deadline.replace(tzinfo=datetime.timezone.utc)
+
+        if deadline > now:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot update application status before the deadline",
+            )
 
     application.status = status_update.status  # type: ignore
     if application.status == ApplicationStatus.accepted:  # type: ignore
@@ -315,22 +315,14 @@ async def endorse_application(
                 detail="Form associated with this application not found",
             )
 
-        club_id = form.club_id
+        club_cid = form.club_id
 
         # check if user is a member of the club
-        club_membership = (
-            db.query(club_members)
-            .filter(
-                and_(
-                    club_members.c.club_id == club_id, club_members.c.user_id == user_id
-                )
-            )
-            .first()
-        )
+        club_membership = is_member_of_club(user_id, club_cid, db) or is_admin_of_club(user_id, club_cid, db)
 
         if not club_membership:
             raise HTTPException(
-                status_code=403, detail="Only club members can endorse applications"
+                status_code=403, detail="Only club members and admins can endorse applications"
             )
 
         # check if user has already endorsed this application
@@ -391,7 +383,7 @@ async def withdraw_endorsement(
             )
 
         # remove user from endorsers
-        application.endorser_ids.remove(user_id)
+        application.endorser_ids = [endorser_id for endorser_id in application.endorser_ids if endorser_id != user_id]
 
         db.commit()
         db.refresh(application)
@@ -402,6 +394,7 @@ async def withdraw_endorsement(
             "endorser_count": len(application.endorser_ids)
             if application.endorser_ids
             else 0,
+            "message": "Endorsement withdrawn successfully"
         }
 
     except HTTPException as e:
@@ -462,22 +455,15 @@ async def get_form_applications(
     if not form:
         raise HTTPException(status_code=404, detail=f"Form with ID {form_id} not found")
 
-    # check if user is a club member
-    club_membership = (
-        db.query(club_members)
-        .filter(
-            and_(
-                club_members.c.club_id == form.club_id,
-                club_members.c.user_id == user_uid,
-            )
-        )
-        .first()
-    )
+    club_cid = form.club_id
+
+    # check if user is a club member or club admin
+    club_membership = is_member_of_club(user_uid, club_cid, db) or is_admin_of_club(user_uid, club_cid, db)
 
     if not club_membership:
         raise HTTPException(
             status_code=403,
-            detail="Only club members can view all applications for a form",
+            detail="Only club members and admins can view all applications for a form",
         )
 
     # get all applications for this form
@@ -542,3 +528,24 @@ async def get_user_applications(
         result.append(app_dict)
 
     return result
+
+async def has_user_applied(form_id: int, db: Session, user_data=Depends(get_current_user)):
+    user_id = user_data["uid"]
+    existing_application = (
+        db.query(Application)
+        .filter(Application.form_id == form_id, Application.user_id == user_id)
+        .first()
+    )
+
+    if existing_application:
+        return {
+            "has_applied": True,
+            "application_id": existing_application.id,
+            "status": existing_application.status
+        }
+    else:
+        return {
+            "has_applied": False,
+            "application_id": None,
+            "status": None
+        }

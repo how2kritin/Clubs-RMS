@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Body, Path
 from sqlalchemy.orm import Session
@@ -7,7 +7,7 @@ from models.applications.applications_config import (get_application_autofill_in
                                                      get_application_status, update_application_status,
                                                      endorse_application, withdraw_endorsement, delete_application,
                                                      get_application_details, get_user_applications,
-                                                     get_form_applications, )
+                                                     get_form_applications, has_user_applied, )
 from models.users.users_config import inform_users
 from models.users.users_model import User
 from schemas.applications.applications import (ApplicationOut, ApplicationStatusUpdate, UserApplicationOut,
@@ -122,12 +122,12 @@ async def get_application_details_endpoint(
 
 
 @router.put("/{application_id}/status", response_model=ApplicationOut, summary="Update Application Status",
-    description="Updates the status of an application (e.g., accepted, rejected).",
+    description="Updates the status of an application (e.g., accepted, rejected). Only club admins can update it.",
     response_description="The updated application record", )
 async def update_application_status_endpoint(
         application_id: int = Path(..., description="The ID of the application to update"),
         status_update: ApplicationStatusUpdate = Body(..., description="New status details"),
-        db: Session = Depends(get_db)):
+        db: Session = Depends(get_db), user_data = Depends(get_current_user)):
     """
     Update the status of an application.
 
@@ -136,7 +136,7 @@ async def update_application_status_endpoint(
     - Email notification will be sent to the applicant
     - Returns the updated application with new status
     """
-    updated_application, form = await update_application_status(db, application_id, status_update)
+    updated_application, form = await update_application_status(db, application_id, status_update, user_data)
 
     user_id = updated_application.user_id
     user = db.query(User).filter(User.uid == user_id).first()
@@ -195,3 +195,22 @@ async def delete_application_endpoint(
     - Returns confirmation of successful deletion
     """
     return await delete_application(application_id, db, user_data)
+
+
+@router.get("/has-applied/{form_id}", response_model=Dict[str, Any], summary="Check if User Has Applied",
+    description="Checks if the current user has already applied to a specific form.",
+    response_description="Application information if user has applied")
+async def has_user_applied_endpoint(
+        form_id: int = Path(..., description="The ID of the form to check"),
+        db: Session = Depends(get_db),
+        user_data: dict = Depends(get_current_user)):
+    """
+    Check if the current user has already applied to a specific form.
+
+    - Authentication required: User must be logged in
+    - Returns application details if the user has already applied, or null if they haven't
+    """
+    try:
+        return await has_user_applied(form_id, db, user_data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
