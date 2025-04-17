@@ -26,19 +26,26 @@ const CalendarComponent = ({ events }: CalendarProps) => {
         plugins={[dayGridPlugin]}
         initialView="dayGridMonth"
         events={events}
-        eventContent={(eventInfo: EventContentArg) => (
-          <div className="fc-event-title-container">
-            <div className="fc-event-tooltip">
-              <strong>{eventInfo.timeText}</strong> - {eventInfo.event.title}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-              <b className="fc-event-time">{eventInfo.timeText}</b>
-              <span className="fc-event-title">
-                {eventInfo.event.title}
-              </span>
-            </div>
-          </div>
-        )}
+        eventDidMount={(info) => {
+          (info.el as HTMLElement).setAttribute('title', info.event.title);
+        }}
+        eventTimeFormat={{
+          hour: 'numeric',
+          minute: '2-digit',
+          meridiem: 'short'
+        }}
+        eventContent={(arg) => {
+          return (
+            <>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+                {arg.timeText}
+              </div>
+              <div style={{ paddingLeft: '0.2rem', fontSize: '0.75rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {arg.event.title}
+              </div>
+            </>
+          );
+        }}
       />
     </div>
   );
