@@ -16,6 +16,12 @@ interface FormDetails {
   club_id?: string; // For club member/admin check
 }
 
+interface ApplicationStatus {
+  has_applied: boolean;
+  application_id: number | null;
+  status: string | null;
+}
+
 function FormView() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
@@ -28,6 +34,12 @@ function FormView() {
   const [isClubMember, setIsClubMember] = useState<boolean>(false);
   const [isClubAdmin, setIsClubAdmin] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  // New state for application status
+  const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus>({
+    has_applied: false,
+    application_id: null,
+    status: null,
+  });
 
   useEffect(() => {
     async function fetchForm() {
@@ -68,6 +80,9 @@ function FormView() {
           }
         }
 
+        // Fetch user's application status for this form
+        await fetchApplicationStatus();
+
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching form:", error);
@@ -79,6 +94,25 @@ function FormView() {
       fetchForm();
     }
   }, [formId]);
+
+  // New function to fetch application status using the correct endpoint
+  const fetchApplicationStatus = async () => {
+    try {
+      // Using the correct endpoint structure as found in the backend code
+      const response = await fetch(`/api/application/has-applied/${formId}`, {
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data: ApplicationStatus = await response.json();
+        setApplicationStatus(data);
+      } else {
+        console.error("Failed to fetch application status");
+      }
+    } catch (error) {
+      console.error("Error fetching application status:", error);
+    }
+  };
 
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...editedQuestions];
@@ -151,6 +185,13 @@ function FormView() {
   // Handler to navigate to the application form
   const handleApply = () => {
     navigate(`/apply/${formId}`);
+  };
+
+  // Handler to view user's own application
+  const handleViewApplication = () => {
+    if (applicationStatus.application_id) {
+      navigate(`/forms/${formId}/applications/${applicationStatus.application_id}`);
+    }
   };
 
   // Handler to navigate to applications list
@@ -262,13 +303,24 @@ function FormView() {
             View Applications
           </button>
         )}
-        <button
-          className="apply-btn"
-          onClick={handleApply}
-          disabled={isDeadlinePassed}
-        >
-          {isDeadlinePassed ? "Deadline Passed" : "Apply to Form"}
-        </button>
+        {(!isClubMember && !isClubAdmin) && (
+          applicationStatus.has_applied ? (
+            <button
+              className="view-application-btn"
+              onClick={handleViewApplication}
+            >
+              View Application
+            </button>
+          ) : (
+            <button
+              className="apply-btn"
+              onClick={handleApply}
+              disabled={isDeadlinePassed}
+            >
+              {isDeadlinePassed ? "Deadline Passed" : "Apply to Form"}
+            </button>
+          )
+        )}
         {(isClubAdmin || isClubMember) && (
           <button
             className="edit-form-btn"

@@ -216,3 +216,271 @@
   cursor: not-allowed;
   opacity: 0.65;
 }
+
+/* Main container for the form view */
+.form-view {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Form header styling */
+.form-view h2 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.form-view h3 {
+  color: #444;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-size: 18px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+/* Form details styling */
+.form-view p {
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.form-view strong {
+  font-weight: 600;
+}
+
+/* Questions list styling */
+.questions-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.questions-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.questions-list li:last-child {
+  border-bottom: none;
+}
+
+/* Form header editing section */
+.form-header-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-header-edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-header-edit input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Button styling for actions */
+.form-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 25px 0;
+}
+
+.form-action-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* Button variants */
+.apply-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.apply-btn:hover {
+  background-color: #45a049;
+}
+
+.apply-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.view-application-btn {
+  background-color: #2196F3;
+  color: white;
+}
+
+.view-application-btn:hover {
+  background-color: #0b7dda;
+}
+
+.view-applications-btn {
+  background-color: #673AB7;
+  color: white;
+}
+
+.view-applications-btn:hover {
+  background-color: #5e35b1;
+}
+
+.edit-form-btn {
+  background-color: #FF9800;
+  color: white;
+}
+
+.edit-form-btn:hover {
+  background-color: #e68a00;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+.schedule-interviews-btn {
+  background-color: #009688;
+  color: white;
+}
+
+.schedule-interviews-btn:hover {
+  background-color: #00796b;
+}
+
+.schedule-interviews-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Editing mode buttons */
+.action-buttons {
+  margin: 15px 0;
+}
+
+.add-btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.add-btn:hover {
+  background-color: #45a049;
+}
+
+.remove-btn {
+  background-color: #f44336;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.remove-btn:hover {
+  background-color: #d32f2f;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-start;
+}
+
+.edit-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.edit-buttons button:first-child {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.edit-buttons button:first-child:hover {
+  background-color: #45a049;
+}
+
+.edit-buttons button:nth-child(2) {
+  background-color: #9e9e9e;
+  color: white;
+}
+
+.edit-buttons button:nth-child(2):hover {
+  background-color: #757575;
+}
+
+/* Question editing styles */
+.questions-list input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Loading state */
+.form-view p:first-child:only-child {
+  text-align: center;
+  padding: 40px;
+  font-style: italic;
+  color: #666;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .form-view {
+    padding: 15px;
+  }
+
+  .form-action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-action-buttons button {
+    width: 100%;
+  }
+
+  .questions-list li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .remove-btn {
+    margin-left: 0;
+    margin-top: 5px;
+  }
+}

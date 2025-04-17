@@ -14,7 +14,7 @@ from routers import (
     calendar_router,
 )
 from models.clubs.clubs_sync import sync_clubs
-from utils.database_utils import SessionLocal, reset_db
+from utils.database_utils import SessionLocal, init_db
 
 # FastAPI instance here, along with CORS middleware
 DEBUG = getenv("DEBUG_BACKEND", "False").lower() in ("true", "t", "1")
@@ -36,7 +36,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def on_startup():
     # initialize the postgresql database.
-    reset_db()
+    init_db()
     db = SessionLocal()
 
     # sync clubs data from Clubs Council API
