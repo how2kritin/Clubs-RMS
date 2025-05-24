@@ -1,32 +1,125 @@
-# SE-project-3
+# SE-project-3 : Clubs++@IIITH
 
-## Run Instructions
+## Overview
+
+**Clubs++@IIITH** is a full-stack web application featuring a React + TypeScript + Vite frontend and a Python FastAPI backend. The system supports user authentication, club management, application processing, event calendars, recommendations, and interview scheduling — all with role-based access control for different user roles (non-member, club member, club admin).
+
+---
+
+## Features
+
+- **User Authentication & Profile Management**
+  - Login, logout, profile update, and view user info.
+  - Role and club membership queries.
+
+- **Club Management**
+  - View all clubs, specific club info, subscribe/unsubscribe to clubs.
+  - Check and manage club subscriptions.
+
+- **Applications**
+  - Submit applications, auto-fill details, check application status.
+  - Club-based application review and endorsement.
+  - Delete or withdraw applications.
+
+- **Recruitment Forms**
+  - Club admins can create, update, or delete recruitment forms.
+  - Applicants can access and submit forms; clubs can view applicants.
+
+- **Calendar**
+  - View personal and club events.
+
+- **Recommendations**
+  - Personalized club recommendations.
+
+- **Interviews**
+  - Club admins can schedule interviews.
+
+- **API Documentation**
+  - Full API documentation available at the backend `/docs` route.
+
+---
+
+## Tech Stack
+
+- **Frontend:** React, TypeScript, Vite, Ant Design, TailwindCSS, Axios, FullCalendar, Framer Motion
+- **Backend:** Python 3.12, FastAPI, Uvicorn, SQLAlchemy, PostgreSQL (implied by psycopg2-binary), LDAP integration, JWT-based auth
+- **DevOps:** Docker, Docker Compose
+
+---
+
+## Instructions to Run
+
+### Prerequisites
+
+- Docker & Docker Compose installed
+- Node.js and npm (for local frontend development)
 
 ### Backend
 
-Build the container and run it:
+Build and run everything using Docker Compose:
+
 ```bash
 docker compose up --build
 ```
 
-To open a shell in the container, run
+To get a shell in the backend container:
 
 ```bash
 docker compose exec backend /bin/bash
 ```
 
+To view API documentation, go to:  
+`http://localhost:<backend-port>/docs`
+
 ### Frontend
 
-Install dependencies:
+For local development (from the `frontend` directory):
 
-```bash
-npm i
+1. Install dependencies:
+
+   ```bash
+   npm i
+   ```
+
+2. Start the development server:
+
+   ```bash
+   npx vite
+   ```
+
+   The site will be available at `http://localhost:5173` (default Vite port).
+
+---
+
+## Project Structure (simplified)
+
+```
+SE-project-3/
+├── backend/
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── ... (FastAPI app code)
+├── frontend/
+│   ├── package.json
+│   └── ... (React/Vite code)
+├── README.md
+└── ... (other files)
 ```
 
-Start the website:
-```bash
-npx vite
-```
+---
+
+## Further Information
+
+- For advanced configuration and deployment, see `backend/Dockerfile` and frontend scripts in `package.json`.
+- The frontend uses Vite + TypeScript + React with TailwindCSS.
+- The backend Dockerfile sets up a Python virtual environment and runs FastAPI with Uvicorn in reload mode for rapid development.
+
+---
+
+## Contribution
+
+- Fork the repository and create a pull request for contributions.
+- Please ensure code is linted and tested before submitting.
 
 ---
 
