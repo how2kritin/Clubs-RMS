@@ -6,6 +6,16 @@
 
 ---
 
+## Architectural Analysis: Monolith vs. Microservices
+
+As part of this project, we conducted a comprehensive study comparing this monolithic architecture to a microservice-based design. A separate branch was created where the recommendation engine was extracted into its own microservice.
+
+**The key finding was that the monolithic design offered significantly better performance and lower development complexity for our tightly-coupled domain.**
+
+For a detailed qualitative and quantitative comparison, including performance benchmarks and analysis, please see the **[microservices branch](https://github.com/how2kritin/Clubs-RMS/tree/microservices)**.
+
+--
+
 ## Features
 
 - **User Authentication & Profile Management**
